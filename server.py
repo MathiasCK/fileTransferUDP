@@ -3,7 +3,7 @@ from utils import utils, arguments, data_handlers, header
 
 def Main():
     # See utils -> arguments.checkServerOpts()
-    bind, port = arguments.checkServerOpts()
+    bind, port, trigger = arguments.checkServerOpts()
     # Set up server socket
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # Bind server socket

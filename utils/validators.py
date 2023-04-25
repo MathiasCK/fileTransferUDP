@@ -21,3 +21,8 @@ def isValidFile(file_path):
    if Path(f"./{file_path}").is_file() is False:
       responses.syntaxError('Image path is not valid')
    return file_path
+
+def isValidTrigger(arg):
+   isValid = re.match(r"^(?:skipack|loss)$", arg, re.IGNORECASE)
+   if str(isValid) == "None":
+       responses.syntaxError("Please provide a valid trigger format (skipack/loss)")

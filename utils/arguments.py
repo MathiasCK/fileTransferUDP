@@ -3,7 +3,7 @@ from getopt import getopt
 from . import responses, validators
 
 # Optional argumens provided on startup
-opts, args = getopt(argv[1:], "scI:p:b:f:", ["server", "client", "serverip=", "port=", "bind=", "file="])
+opts, args = getopt(argv[1:], "scI:p:b:f:t:", ["server", "client", "serverip=", "port=", "bind=", "file=", "trigger="])
 
 # Check what mode the process should be ran in
 def checkMode():
@@ -23,6 +23,8 @@ def checkClientOpts():
     ip = "localhost"
     global port # server port (default 8088)
     port = 8080
+    global trigger
+    trigger = None
 
     # Check default values should be overwritten
     for opt, arg in opts:
@@ -39,16 +41,22 @@ def checkClientOpts():
             # Validate file
             validators.isValidFile(arg)
             file = arg
+        if opt in ('-t', '--trigger'):
+          # Validate ip address
+          validators.isValidTrigger(arg)
+          trigger = arg
 
-    return ip, port, file
+    return ip, port, file, trigger
 
 # Check for optional arguments for server startup
 def checkServerOpts():
-    # Default values for bind, port and format
+    # Default values for bind, port and trigger
     global bind
     bind = "localhost"
     global port
     port = 8080
+    global trigger
+    trigger = None
 
     # Check default values should be overwritten
     for opt, arg in opts:
@@ -60,5 +68,9 @@ def checkServerOpts():
           # Validate port number
           validators.isValidPort(arg)
           port = int(arg)
+      if opt in ('-t', '--trigger'):
+          # Validate ip address
+          validators.isValidTrigger(arg)
+          trigger = arg
 
-    return bind, port
+    return bind, port, trigger
