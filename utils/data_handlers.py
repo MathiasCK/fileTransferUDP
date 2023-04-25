@@ -40,3 +40,8 @@ def connectClient(client_sd, ip, port):
         responses.err(err)
 
     sendData(client_sd, ip, port)
+
+def handleClientData(packetNum, server, client):
+    print(f"Received packet {packetNum}")
+
+    server.sendto(str(packetNum).encode(), client)
