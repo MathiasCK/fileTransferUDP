@@ -28,7 +28,6 @@ def sendData(client_sd, ip, port):
 
     client_sd.sendto("ACK/BYE".encode(), (ip, port))
     
-
 def connectClient(client_sd, ip, port):
     try:
         client_sd.sendto("CONNREQ".encode(), (ip, port))
