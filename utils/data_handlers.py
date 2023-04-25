@@ -11,7 +11,6 @@ def sendClientData(client_sd, ip, port):
         client_sd.sendto(packet.encode(), (ip, port))
 
         ack_received = False
-        
         while not ack_received:
             try:
                 client_sd.settimeout(1)
@@ -23,6 +22,8 @@ def sendClientData(client_sd, ip, port):
                 client_sd.sendto(packet.encode(), (ip, port))
 
         sequence_number += 1
+
+    client_sd.sendto("ACK/BYE".encode(), (ip, port))
     
 
 def handleClientData(client_sd, ip, port):
