@@ -11,7 +11,7 @@ def sendData(client_sd, ip, port, file_path):
             # Read next chunk from file
             chunk = file.read(1460)
 
-            packet = header.create_packet(sequence_number, ack_recv, 0, 0, chunk)
+            packet = header.create_packet(sequence_number, ack_recv, 4, 0, chunk)
             
             client_sd.sendto(packet, (ip, port))
 
@@ -36,15 +36,22 @@ def sendData(client_sd, ip, port, file_path):
                 packet = header.create_packet(sequence_number, ack_recv, 2, 0, chunk)
                 client_sd.sendto(packet, (ip, port))
                 break
+    
+    client_sd.close()
 
-        
-  
 def connectClient(client_sd, ip, port, file):
     try:
-        client_sd.sendto("CONNREQ".encode(), (ip, port))
-        ack, _ = client_sd.recvfrom(1024)
-        if ack != b"ACK":
-            responses.connectionRefused(err)
+        packet = header.create_packet(0, 0, 8, 0, b'')
+        client_sd.sendto(packet, (ip, port))
+
+        data, _ = client_sd.recvfrom(1472)
+        headers = data[:12]
+
+        _, _, flags, _ = header.parse_header (headers)
+        synFlag, ackFlag, _ = header.parse_flags(flags)
+        
+        if synFlag + ackFlag != 12:
+            responses.connectionRefused({})
         # Print success message
         print("-------------------------------------------------------------")
         print(f"A UDP client connected to server {ip}, port {port}")

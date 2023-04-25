@@ -21,16 +21,18 @@ def Main():
     while True:
         # Receive packet from client
         data, client = server.recvfrom(1472)
-    
-
-        if data == b"CONNREQ":
-            server.sendto("ACK".encode(), client)
-            continue
         
         headers = data[:12]
         seq, ack, flags, win = header.parse_header (headers)
+        synFlag, ackFlag, finFlag = header.parse_flags(flags)
 
-        if flags == 2:
+
+        if synFlag == 8:
+            packet = header.create_packet(0, 0, 12, 0, b'')
+            server.sendto(packet, client)
+            continue
+
+        if finFlag == 2:
             if ex_ack != ack:
                 continue
             break
@@ -39,6 +41,9 @@ def Main():
         if seq != ex_packetNum:
             utils.invalidPacket(seq, 'Received out of order')
             continue
+
+        if ackFlag != 4:
+            continue;
         
         # See utils -> data_handlers.handleClientData()
         data_handlers.handleClientData(ack, server, client, data)
@@ -47,7 +52,9 @@ def Main():
         ex_packetNum += 1
         ex_ack += 1
         
-    # Close socket
+    # Send ack & close socket
+    packet = header.create_packet(ex_packetNum, ex_ack, 4, 0, b'')
+    server.sendto(packet, client)
     server.close()
 
 if __name__ == '__main__':
