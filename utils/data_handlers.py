@@ -11,8 +11,6 @@ def sendData(client_sd, ip, port, file_path):
             # Read next chunk from file
             chunk = file.read(1460)
 
-            
-
             packet = header.create_packet(sequence_number, ack_recv, 0, 0, chunk)
             
             client_sd.sendto(packet, (ip, port))
@@ -35,6 +33,7 @@ def sendData(client_sd, ip, port, file_path):
 
             if not chunk:
                 break
+            
             sequence_number += 1
 
         packet = header.create_packet(sequence_number, ack_recv, 0, 0, b"ACK/BYE")
