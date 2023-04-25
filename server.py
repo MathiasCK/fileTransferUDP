@@ -29,20 +29,20 @@ def Main():
             break
 
         # Extract packet fields
-        packetNum, checksum, payload = utils.decodePacket(data)
+        packet_num, checksum, payload = utils.decodePacket(data)
 
         # Verify checksum
-        if not utils.validateCheckSum(payload, checksum):
-            utils.invalidPacket(packetNum, 'Checksum failed')
-            continue
+        # if utils.validateCheckSum(payload, checksum) is not True:
+        #     utils.invalidPacket(packet_num, "Checksum failed")
+        #     continue
 
         # Check if packet is not the expected packet
-        if packetNum != ex_packetNum:
-            utils.invalidPacket(packetNum, 'Received out of order')
+        if packet_num != ex_packetNum:
+            utils.invalidPacket(packet_num, 'Received out of order')
             continue
         
         # See utils -> data_handlers.handleClientData()
-        data_handlers.handleClientData(packetNum, server, client)
+        data_handlers.handleClientData(packet_num, server, client)
         # Update expected packet value
         ex_packetNum += 1
         

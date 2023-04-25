@@ -6,10 +6,10 @@ def Main():
     client_sd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     # Get client optional arguments (see arguments.py -> checkClientOpts)
-    ip, port = arguments.checkClientOpts()
+    ip, port, file = arguments.checkClientOpts()
 
     # See utils -> data_handlers.handleClientData()
-    data_handlers.connectClient(client_sd, ip, port)
+    data_handlers.connectClient(client_sd, ip, port, file)
 
     # Close socket
     client_sd.close()

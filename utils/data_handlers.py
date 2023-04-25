@@ -1,34 +1,41 @@
 import socket
 from utils import utils, responses
 
-def sendData(client_sd, ip, port):
-    sequence_number = 0
-    sent_data = ['This', 'is', 'only', 'test', 'data']
+def sendData(client_sd, ip, port, file_path):
 
-    for data in sent_data:
-        packet = utils.createPacket(sequence_number, data)
+    with open(file_path, 'rb') as file:
+        sequence_number = 0
+        while True:
+            # Read next chunk from file
+            chunk = file.read(1024)
 
-        client_sd.sendto(packet.encode(), (ip, port))
+            if not chunk:
+                break
 
-        ack_received = False
-        while not ack_received:
-            try:
-                client_sd.settimeout(1)
-                data, _ = client_sd.recvfrom(1024)
+            packet = utils.createPacket(sequence_number, chunk)
+            
+            client_sd.sendto(packet.encode(), (ip, port))
 
-                if int(data.decode()) == sequence_number:
-                    ack_received = True
-                    print(f"Packet {sequence_number} sent")
+            ack_received = False
 
-            except socket.timeout:
-                print(f"Packet {sequence_number} timed out - Resending packet")
-                client_sd.sendto(packet.encode(), (ip, port))
+            while not ack_received:
+                try:
+                    client_sd.settimeout(1)
+                    data, _ = client_sd.recvfrom(1024)
 
-        sequence_number += 1
+                    if int(data.decode()) == sequence_number:
+                        ack_received = True
+                        print(f"Packet {sequence_number} sent")
 
-    client_sd.sendto("ACK/BYE".encode(), (ip, port))
+                except socket.timeout:
+                    print(f"Packet {sequence_number} timed out - Resending packet")
+                    client_sd.sendto(packet.encode(), (ip, port))
+
+            sequence_number += 1
+
+        client_sd.sendto("ACK/BYE".encode(), (ip, port))
     
-def connectClient(client_sd, ip, port):
+def connectClient(client_sd, ip, port, file):
     try:
         client_sd.sendto("CONNREQ".encode(), (ip, port))
         ack, _ = client_sd.recvfrom(1024)
@@ -41,7 +48,7 @@ def connectClient(client_sd, ip, port):
     except Exception as err:
         responses.err(err)
 
-    sendData(client_sd, ip, port)
+    sendData(client_sd, ip, port, file)
 
 def handleClientData(packetNum, server, client):
     print(f"Received packet {packetNum}")
