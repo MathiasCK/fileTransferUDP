@@ -1,7 +1,7 @@
 import socket
 from utils import utils, responses
 
-def sendClientData(client_sd, ip, port):
+def sendData(client_sd, ip, port):
     sequence_number = 0
     sent_data = ['This', 'is', 'only', 'test', 'data']
 
@@ -26,13 +26,17 @@ def sendClientData(client_sd, ip, port):
     client_sd.sendto("ACK/BYE".encode(), (ip, port))
     
 
-def handleClientData(client_sd, ip, port):
+def connectClient(client_sd, ip, port):
     try:
         client_sd.sendto("CONNREQ".encode(), (ip, port))
         ack, _ = client_sd.recvfrom(1024)
         if ack != b"ACK":
             responses.connectionRefused(err)
+        # Print success message
+        print("-------------------------------------------------------------")
+        print(f"A UDP client connected to server {ip}, port {port}")
+        print("-------------------------------------------------------------")
     except Exception as err:
         responses.err(err)
 
-    sendClientData(client_sd, ip, port)
+    sendData(client_sd, ip, port)

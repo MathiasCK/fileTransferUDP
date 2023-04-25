@@ -9,7 +9,7 @@ def Main():
     ip, port = arguments.checkClientOpts()
 
     # See utils -> data_handlers.handleClientData()
-    data_handlers.handleClientData(client_sd, ip, port)
+    data_handlers.connectClient(client_sd, ip, port)
 
     # Close socket
     client_sd.close()
