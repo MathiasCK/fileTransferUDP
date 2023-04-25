@@ -1,5 +1,6 @@
 import re
 from . import responses
+from pathlib import Path
 
 # Checks if IP address provided by -I flag is valid with regex
 # @ip -> string 
@@ -15,3 +16,8 @@ def isValidIP(ip):
 def isValidPort(port):
    if not int(port) >= 1024 and int(port) <= 65535:
       responses.syntaxError("Please provide a valid port (range 1024 -> 65535)")
+
+def isValidFile(file_path):
+   if Path(f"./{file_path}").is_file() is False:
+      responses.syntaxError('Image path is not valid')
+   return file_path

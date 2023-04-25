@@ -3,7 +3,7 @@ from getopt import getopt
 from . import responses, validators
 
 # Optional argumens provided on startup
-opts, args = getopt(argv[1:], "scI:p:b", ["server", "client", "serverip=", "port=", "bind="])
+opts, args = getopt(argv[1:], "scI:p:b:f:", ["server", "client", "serverip=", "port=", "bind=", "file="])
 
 # Check what mode the process should be ran in
 def checkMode():
@@ -35,8 +35,12 @@ def checkClientOpts():
             arg = int(arg)
             validators.isValidPort(arg)
             port = arg
+        if opt in ('-f', '--file'):
+            # Validate file
+            validators.isValidFile(arg)
+            file = arg
 
-    return ip, port
+    return ip, port, file
 
 # Check for optional arguments for server startup
 def checkServerOpts():
