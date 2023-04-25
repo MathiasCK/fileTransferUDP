@@ -1,5 +1,5 @@
 import socket
-from utils import utils, arguments, data_handlers
+from utils import utils, arguments, data_handlers, header
 
 def Main():
     # See utils -> arguments.checkServerOpts()
@@ -16,10 +16,11 @@ def Main():
 
     # Keep track of expected incomming packet
     ex_packetNum = 0
+    ex_ack = 0
 
     while True:
         # Receive packet from client
-        data, client = server.recvfrom(1024)
+        data, client = server.recvfrom(1460)
 
         if data == b"CONNREQ":
             server.sendto("ACK".encode(), client)
@@ -28,23 +29,21 @@ def Main():
         if data == b"ACK/BYE":
             break
 
-        # Extract packet fields
-        packet_num, checksum, payload = utils.decodePacket(data)
+        headers = data[:12]
+        seq, ack, flags, win = header.parse_header (headers)
 
-        # Verify checksum
-        # if utils.validateCheckSum(payload, checksum) is not True:
-        #     utils.invalidPacket(packet_num, "Checksum failed")
-        #     continue
+        print(f'seq={seq}, ack={ack}, flags={flags}, recevier-window={win}')
 
         # Check if packet is not the expected packet
-        if packet_num != ex_packetNum:
-            utils.invalidPacket(packet_num, 'Received out of order')
+        if seq != ex_packetNum:
+            utils.invalidPacket(seq, 'Received out of order')
             continue
         
         # See utils -> data_handlers.handleClientData()
-        data_handlers.handleClientData(packet_num, server, client)
+        data_handlers.handleClientData(seq, server, client)
         # Update expected packet value
         ex_packetNum += 1
+        ex_ack += 1
         
     # Close socket
     server.close()
