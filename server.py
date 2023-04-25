@@ -26,13 +26,15 @@ def Main():
             server.sendto("ACK".encode(), client)
             continue
         
-        if data == b"ACK/BYE":
-            break
-
         headers = data[:12]
         seq, ack, flags, win = header.parse_header (headers)
 
         print(f'seq={seq}, ack={ack}, flags={flags}, recevier-window={win}')
+
+        if data == b"ACK/BYE" or b"ACK/BYE" in data:
+            if ex_ack != ack:
+                continue
+            break
 
         # Check if packet is not the expected packet
         if seq != ex_packetNum:
@@ -40,7 +42,8 @@ def Main():
             continue
         
         # See utils -> data_handlers.handleClientData()
-        data_handlers.handleClientData(seq, server, client)
+        data_handlers.handleClientData(ack, server, client)
+        
         # Update expected packet value
         ex_packetNum += 1
         ex_ack += 1
