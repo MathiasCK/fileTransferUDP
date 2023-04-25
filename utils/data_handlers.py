@@ -20,24 +20,24 @@ def sendData(client_sd, ip, port, file_path):
             while not ack_received:
                 try:
                     client_sd.settimeout(1)
-                    data, _ = client_sd.recvfrom(1460)
+                    data, _ = client_sd.recvfrom(1472)
 
                     if int(data.decode()) == sequence_number:
                         ack_received = True
-                        ack_recv += 1
                         print(f"Packet {sequence_number} sent")
+                        ack_recv += 1
+                        sequence_number += 1
 
                 except socket.timeout:
                     print(f"Packet {sequence_number} timed out - Resending packet")
                     client_sd.sendto(packet.encode(), (ip, port))
 
             if not chunk:
+                packet = header.create_packet(sequence_number, ack_recv, 2, 0, chunk)
+                client_sd.sendto(packet, (ip, port))
                 break
-            
-            sequence_number += 1
 
-        packet = header.create_packet(sequence_number, ack_recv, 0, 0, b"ACK/BYE")
-        client_sd.sendto(packet, (ip, port))
+        
   
 def connectClient(client_sd, ip, port, file):
     try:
@@ -54,7 +54,7 @@ def connectClient(client_sd, ip, port, file):
 
     sendData(client_sd, ip, port, file)
 
-def handleClientData(packetNum, server, client):
+def handleClientData(packetNum, server, client, data):
     print(f"Received packet {packetNum}")
 
     server.sendto(str(packetNum).encode(), client)

@@ -20,7 +20,8 @@ def Main():
 
     while True:
         # Receive packet from client
-        data, client = server.recvfrom(1460)
+        data, client = server.recvfrom(1472)
+    
 
         if data == b"CONNREQ":
             server.sendto("ACK".encode(), client)
@@ -29,9 +30,7 @@ def Main():
         headers = data[:12]
         seq, ack, flags, win = header.parse_header (headers)
 
-        print(f'seq={seq}, ack={ack}, flags={flags}, recevier-window={win}')
-
-        if data == b"ACK/BYE" or b"ACK/BYE" in data:
+        if flags == 2:
             if ex_ack != ack:
                 continue
             break
@@ -42,7 +41,7 @@ def Main():
             continue
         
         # See utils -> data_handlers.handleClientData()
-        data_handlers.handleClientData(ack, server, client)
+        data_handlers.handleClientData(ack, server, client, data)
         
         # Update expected packet value
         ex_packetNum += 1
