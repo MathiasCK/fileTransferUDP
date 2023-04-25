@@ -3,7 +3,7 @@ from getopt import getopt
 from . import responses, validators
 
 # Optional argumens provided on startup
-opts, args = getopt(argv[1:], "scI:p:b:f:t:", ["server", "client", "serverip=", "port=", "bind=", "file=", "trigger="])
+opts, args = getopt(argv[1:], "scI:p:b:f:t:r:", ["server", "client", "serverip=", "port=", "bind=", "file=", "trigger=", "reliability="])
 
 # Check what mode the process should be ran in
 def checkMode():
@@ -25,6 +25,8 @@ def checkClientOpts():
     port = 8080
     global trigger
     trigger = None
+    global reliability
+    reliability = None
 
     # Check default values should be overwritten
     for opt, arg in opts:
@@ -42,11 +44,15 @@ def checkClientOpts():
             validators.isValidFile(arg)
             file = arg
         if opt in ('-t', '--trigger'):
-          # Validate ip address
+          # Validate ip trigger
           validators.isValidTrigger(arg)
           trigger = arg
+        if opt in ('-r', '--reliability'):
+          # Validate reliability
+          validators.isValidReliability(arg)
+          reliability = arg
 
-    return ip, port, file, trigger
+    return ip, port, file, trigger, reliability
 
 # Check for optional arguments for server startup
 def checkServerOpts():
@@ -57,6 +63,8 @@ def checkServerOpts():
     port = 8080
     global trigger
     trigger = None
+    global reliability
+    reliability = None
 
     # Check default values should be overwritten
     for opt, arg in opts:
@@ -69,8 +77,12 @@ def checkServerOpts():
           validators.isValidPort(arg)
           port = int(arg)
       if opt in ('-t', '--trigger'):
-          # Validate ip address
+          # Validate ip trigger
           validators.isValidTrigger(arg)
           trigger = arg
+      if opt in ('-r', '--reliability'):
+          # Validate reliability
+          validators.isValidReliability(arg)
+          reliability = arg
 
-    return bind, port, trigger
+    return bind, port, trigger, reliability
