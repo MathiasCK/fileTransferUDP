@@ -1,9 +1,9 @@
 import client, server
-from utils import utils
+from utils import arguments
 
 def Main():
     # If server flag is included (-s or --server) run as server
-    if utils.checkMode() == "server":
+    if arguments.checkMode() == "server":
         return server.Main()
     # Else run as client
     client.Main()
