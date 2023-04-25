@@ -15,10 +15,13 @@ def sendData(client_sd, ip, port):
             try:
                 client_sd.settimeout(1)
                 data, _ = client_sd.recvfrom(1024)
+
                 if int(data.decode()) == sequence_number:
                     ack_received = True
+                    print(f"Packet {sequence_number} sent")
+
             except socket.timeout:
-                print(f"Packet {sequence_number} timed out. Resending packet.")
+                print(f"Packet {sequence_number} timed out - Resending packet")
                 client_sd.sendto(packet.encode(), (ip, port))
 
         sequence_number += 1
