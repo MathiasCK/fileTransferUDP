@@ -1,0 +1,26 @@
+{
+  "name": "fileTransferUDP",
+  "version": "1.0.0",
+  "description": "",
+  "main": "application.py",
+  "scripts": {
+    "start:server": "python3 application.py -s",
+    "start:client": "python3 application.py -c -f Photo.jpg",
+    "start:client_SAW": "python3 application.py -c -f Photo.jpg -r SAW",
+    "start:client_GBN": "python3 application.py -c -f Photo.jpg -r GBN"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MathiasCK/fileTransferUDP.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MathiasCK/fileTransferUDP/issues"
+  },
+  "homepage": "https://github.com/MathiasCK/fileTransferUDP#readme",
+  "dependencies": {
+    "python3": "^0.0.1"
+  }
+}
