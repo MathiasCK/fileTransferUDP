@@ -19,51 +19,59 @@ def Main():
     expected_seq_num = 0
     receive_buffer = {}
 
-    while True:
-        data, client = server.recvfrom(1472)
-        
-        headers = data[:12]
-        seq, ack, flags, win = header.parse_header (headers)
-        synFlag, ackFlag, finFlag = header.parse_flags(flags)
+    with open('safi-recv.jpg', 'wb') as f:
+        while True:
+            data, client = server.recvfrom(1472)
+            
+            headers = data[:12]
+            seq, ack, flags, win = header.parse_header (headers)
+            synFlag, ackFlag, finFlag = header.parse_flags(flags)
 
-        if finFlag == 2:
-            break
+            if finFlag == 2:
+                break
 
-        if synFlag == 8:
-            packet = header.create_packet(0, 0, 12, 0, b'')
-            server.sendto(packet, client)
-            continue
+            if synFlag == 8:
+                packet = header.create_packet(0, 0, 12, 0, b'')
+                server.sendto(packet, client)
+                continue
 
-        if win == 5 and flags == 0:
-            receive_buffer[seq] = data
+            if win == 5 and flags == 0:
+                receive_buffer[seq] = data
+                print(f"Received packet {ack}")
+                server.sendto(str(ack).encode(), client)
+
+                while expected_seq_num in receive_buffer:
+                    f.write(receive_buffer[expected_seq_num])
+                    del receive_buffer[expected_seq_num]
+                    expected_seq_num += 1
+
+            if win == 5:
+                f.write(data)
+                print(f"Received packet {ack}")
+                server.sendto(str(ack).encode(), client)
+                expected_seq_num += 1
+                continue
+
+            # Check if packet is not the expected packet
+            if seq != ex_packetNum:
+                utils.invalidPacket(seq, 'Received out of order')
+                continue
+
+            if ackFlag != 4:
+                continue;
+            
+            # Handle client data
+            f.write(data)
             print(f"Received packet {ack}")
             server.sendto(str(ack).encode(), client)
-
-        if win == 5:
-            print(f"Received packet {ack}")
-            server.sendto(str(ack).encode(), client)
-            expected_seq_num += 1
-            continue
-
-        # Check if packet is not the expected packet
-        if seq != ex_packetNum:
-            utils.invalidPacket(seq, 'Received out of order')
-            continue
-
-        if ackFlag != 4:
-            continue;
-        
-        # Handle client data
-        print(f"Received packet {ack}")
-        server.sendto(str(ack).encode(), client)
-        
-        # Update expected packet value
-        ex_packetNum += 1
-        
-    # Send ack & close socket
-    # packet = header.create_packet(ex_packetNum, seq, 4, 0, b'')
-    # server.sendto(packet, client)
-    server.close()
+            
+            # Update expected packet value
+            ex_packetNum += 1
+            
+        # Send ack & close socket
+        # packet = header.create_packet(ex_packetNum, seq, 4, 0, b'')
+        # server.sendto(packet, client)
+        server.close()
 
 if __name__ == '__main__':
     Main()
