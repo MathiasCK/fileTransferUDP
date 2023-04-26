@@ -1,5 +1,5 @@
 import socket
-from utils import header, utils
+from utils import header, utils, responses
 
 def stop_and_wait(client_sd, ip, port, file):
 
@@ -113,10 +113,6 @@ def sendData(client_sd, ip, port, file):
 
 def handleClientData(client_sd, ip, port, file_path, reliability):
 
-    print("-------------------------------------------------------------")
-    print(f"A UDP client connected to server {ip}, port {port}")
-    print("-------------------------------------------------------------")
-
     with open(file_path, 'rb') as file:
 
         if reliability is not None:
@@ -127,5 +123,24 @@ def handleClientData(client_sd, ip, port, file_path, reliability):
             
         return sendData(client_sd, ip, port, file)
 
+def connectClient(client_sd, ip, port):
+    try:
+        packet = header.create_packet(0, 0, 8, 0, b'')
+        client_sd.sendto(packet, (ip, port))
+
+        data, _ = client_sd.recvfrom(1472)
+        headers = data[:12]
+
+        _, _, flags, _ = header.parse_header (headers)
+        synFlag, ackFlag, _ = header.parse_flags(flags)
+
+        if synFlag + ackFlag != 12:
+            responses.connectionRefused({})
+        # Print success message
+        print("-------------------------------------------------------------")
+        print(f"A UDP client connected to server {ip}, port {port}")
+        print("-------------------------------------------------------------")
+    except Exception as err:
+        responses.err(err)
 
     

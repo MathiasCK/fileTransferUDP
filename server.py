@@ -25,6 +25,11 @@ def Main():
         seq, ack, flags, win = header.parse_header (headers)
         synFlag, ackFlag, finFlag = header.parse_flags(flags)
 
+        if synFlag == 8:
+            packet = header.create_packet(0, 0, 12, 0, b'')
+            server.sendto(packet, client)
+            continue
+
         if finFlag == 2:
             break
 
@@ -32,11 +37,6 @@ def Main():
             print(f"Received packet {ack}")
             server.sendto(str(ack).encode(), client)
             expected_seq_num += 1
-            continue
-
-        if synFlag == 8:
-            packet = header.create_packet(0, 0, 12, 0, b'')
-            server.sendto(packet, client)
             continue
 
         # Check if packet is not the expected packet

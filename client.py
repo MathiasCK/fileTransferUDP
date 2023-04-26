@@ -7,6 +7,8 @@ def Main():
     # Get client optional arguments (see arguments.py -> checkClientOpts)
     ip, port, file, trigger, reliability = arguments.checkClientOpts()
 
+    # See utils -> data_handlers.connectClient()
+    data_handlers.connectClient(client_sd, ip, port)
     # See utils -> data_handlers.handleClientData()
     data_handlers.handleClientData(client_sd, ip, port, file, reliability)
 
