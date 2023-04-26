@@ -9,7 +9,7 @@ def Main():
     ip, port, file, trigger, reliability = arguments.checkClientOpts()
 
     # See utils -> data_handlers.handleClientData()
-    data_handlers.connectClient(client_sd, ip, port, file)
+    data_handlers.connectClient(client_sd, ip, port, file, reliability)
 
     # Close socket
     client_sd.close()

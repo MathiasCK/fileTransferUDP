@@ -50,7 +50,7 @@ def checkClientOpts():
         if opt in ('-r', '--reliability'):
           # Validate reliability
           validators.isValidReliability(arg)
-          reliability = arg
+          reliability = arg.upper()
 
     return ip, port, file, trigger, reliability
 
@@ -83,6 +83,6 @@ def checkServerOpts():
       if opt in ('-r', '--reliability'):
           # Validate reliability
           validators.isValidReliability(arg)
-          reliability = arg
+          reliability = arg.upper()
 
     return bind, port, trigger, reliability
