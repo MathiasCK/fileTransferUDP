@@ -11,9 +11,7 @@ def stop_and_wait(client_sd, server, file):
         # Read next chunk from file
         chunk = file.read(1460)
 
-        packet = header.create_packet(seq_num, ex_ack, 4, 0, chunk)
-
-        client_sd.sendto(packet, server)
+        utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
 
         try:
             ack, _ = client_sd.recvfrom(1472)
