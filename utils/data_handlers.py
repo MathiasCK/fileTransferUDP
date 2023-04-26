@@ -141,7 +141,7 @@ def sendData(client_sd, server, file):
 
             except socket.timeout:
                 print(f"Packet {seq_num} timed out - Resending packet")
-                client_sd.sendto(packet.encode(), server)
+                utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
 
         if not chunk:
             utils.sendFINPacket(client_sd, server, seq_num, ex_ack)
@@ -165,8 +165,7 @@ def handleClientData(client_sd, server, file_path, reliability):
 
 def connectClient(client_sd, ip, port):
     try:
-        packet = header.create_packet(0, 0, 8, 0, b'')
-        client_sd.sendto(packet, (ip, port))
+        utils.createAndSendPacket(client_sd, (ip, port), 0, 0, 8, 0, b'')
 
         data, _ = client_sd.recvfrom(1472)
         headers = data[:12]
