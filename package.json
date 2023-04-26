@@ -7,7 +7,8 @@
     "start:server": "python3 application.py -s",
     "start:client": "python3 application.py -c -f Photo.jpg",
     "start:client_SAW": "python3 application.py -c -f Photo.jpg -r SAW",
-    "start:client_GBN": "python3 application.py -c -f Photo.jpg -r GBN"
+    "start:client_GBN": "python3 application.py -c -f Photo.jpg -r GBN",
+    "start:client_SR": "python3 application.py -c -f Photo.jpg -r SR"
   },
   "repository": {
     "type": "git",

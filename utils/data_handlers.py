@@ -76,6 +76,9 @@ def GBN(client_sd, ip, port, file):
    
     utils.sendFINPacket(client_sd, ip, port, next_seq_num, next_seq_num)
 
+def SR():
+    print("SR")
+
 def sendData(client_sd, ip, port, file):
 
     seq_num = 0
@@ -120,6 +123,8 @@ def handleClientData(client_sd, ip, port, file_path, reliability):
                 return stop_and_wait(client_sd, ip, port, file)
             if reliability == 'GBN':
                 return GBN(client_sd, ip, port, file)
+            if reliability == 'SR':
+                return SR()
             
         return sendData(client_sd, ip, port, file)
 
