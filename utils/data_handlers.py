@@ -1,5 +1,6 @@
 import socket
 from utils import header, utils, responses
+from collections import deque
 
 def stop_and_wait(client_sd, ip, port, file):
 
@@ -76,8 +77,53 @@ def GBN(client_sd, ip, port, file):
    
     utils.sendFINPacket(client_sd, ip, port, next_seq_num, next_seq_num)
 
-def SR():
-    print("SR")
+def SR(client_sd, ip, port, file):
+    window_size = 5
+    base = 0
+    next_seq_num = 0
+    unacknowledged_packets = {}
+    buffer = deque()
+    
+    while True:
+        if len(buffer) < window_size:
+            payload = file.read(1460)
+            if payload:
+                buffer.append(payload)
+            else:
+                break
+
+        if next_seq_num < base + window_size and buffer:
+            payload = buffer.popleft()
+            
+            packet = header.create_packet(next_seq_num, next_seq_num, 0, 5, payload)
+
+            print(f"Packet {next_seq_num} sent")
+            
+            client_sd.sendto(packet, (ip, port))
+
+            unacknowledged_packets[next_seq_num] = payload
+            next_seq_num += 1
+
+        try:
+            ack, _ = client_sd.recvfrom(1024)
+            ack_seq_num = int(ack.decode())
+
+            if ack_seq_num in unacknowledged_packets:
+                del unacknowledged_packets[ack_seq_num]
+                if ack_seq_num == base:
+                    base += 1
+                    while base in unacknowledged_packets:
+                        base += 1
+
+        except socket.timeout:
+            for seq_num, payload in unacknowledged_packets.items():
+                packet = header.create_packet(seq_num, seq_num, 4, 5, payload)
+
+                print(f"Packet {seq_num} sent")
+            
+                client_sd.sendto(packet, (ip, port))
+
+    utils.sendFINPacket(client_sd, ip, port, next_seq_num, next_seq_num)
 
 def sendData(client_sd, ip, port, file):
 
@@ -124,7 +170,7 @@ def handleClientData(client_sd, ip, port, file_path, reliability):
             if reliability == 'GBN':
                 return GBN(client_sd, ip, port, file)
             if reliability == 'SR':
-                return SR()
+                return SR(client_sd, ip, port, file)
             
         return sendData(client_sd, ip, port, file)
 
@@ -147,5 +193,3 @@ def connectClient(client_sd, ip, port):
         print("-------------------------------------------------------------")
     except Exception as err:
         responses.err(err)
-
-    

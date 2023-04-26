@@ -17,6 +17,7 @@ def Main():
     # Keep track of expected incomming packet
     ex_packetNum = 0
     expected_seq_num = 0
+    receive_buffer = {}
 
     while True:
         data, client = server.recvfrom(1472)
@@ -25,13 +26,18 @@ def Main():
         seq, ack, flags, win = header.parse_header (headers)
         synFlag, ackFlag, finFlag = header.parse_flags(flags)
 
+        if finFlag == 2:
+            break
+
         if synFlag == 8:
             packet = header.create_packet(0, 0, 12, 0, b'')
             server.sendto(packet, client)
             continue
 
-        if finFlag == 2:
-            break
+        if win == 5 and flags == 0:
+            receive_buffer[seq] = data
+            print(f"Received packet {ack}")
+            server.sendto(str(ack).encode(), client)
 
         if win == 5:
             print(f"Received packet {ack}")
