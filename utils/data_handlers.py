@@ -164,10 +164,7 @@ def handleClientData(client_sd, server, file_path, reliability):
 
 def connectClient(client_sd, ip, port, reliability):
     try:
-        data = b''
-
-        if reliability is not None:
-            data = reliability.encode()
+        data = str(reliability).encode()
 
         utils.createAndSendPacket(client_sd, (ip, port), 0, 0, 8, 0, data)
 

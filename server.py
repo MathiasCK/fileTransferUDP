@@ -4,7 +4,7 @@ from utils import utils, arguments, header, responses
 # Code execution starts here
 def Main():
     # See utils -> arguments.checkServerOpts()
-    bind, port, trigger, reliability = arguments.checkServerOpts()
+    bind, port, trigger, reliability, file = arguments.checkServerOpts()
     # Set up server socket
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     # Bind server socket
@@ -22,8 +22,12 @@ def Main():
     # Received buffer
     receive_buffer = {}
 
+    img = 'safi-recv.jpg'
+    if file is not None:
+        img = file
+
     # Write incomming image to safi-recv.jpg
-    with open('safi-recv.jpg', 'wb') as f:
+    with open(img, 'wb') as f:
         while True:
             # Receive data from client
             data, client = server.recvfrom(1472)
@@ -45,7 +49,7 @@ def Main():
                 # Decode data
                 data = data[12:].decode()
                 # See -> utils.checkReliabilityMatch()
-                if not utils.checkReliabilityMatch(data, reliability):
+                if not utils.checkReliabilityMatch(str(data), str(reliability)):
                     # Format message
                     msg = f'Server reliability "{reliability}" does not match client reliability "{data}"'
                     # See utils.createAndSendPacket()

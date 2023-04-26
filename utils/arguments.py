@@ -65,6 +65,8 @@ def checkServerOpts():
     trigger = None
     global reliability
     reliability = None
+    global file
+    file = None
 
     # Check default values should be overwritten
     for opt, arg in opts:
@@ -76,6 +78,9 @@ def checkServerOpts():
           # Validate port number
           validators.isValidPort(arg)
           port = int(arg)
+      if opt in ('-f', '--file'):
+            # Validate file
+            file = arg
       if opt in ('-t', '--trigger'):
           # Validate ip trigger
           validators.isValidTrigger(arg)
@@ -85,4 +90,4 @@ def checkServerOpts():
           validators.isValidReliability(arg)
           reliability = arg.upper()
 
-    return bind, port, trigger, reliability
+    return bind, port, trigger, reliability, file
