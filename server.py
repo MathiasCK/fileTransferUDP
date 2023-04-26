@@ -1,5 +1,5 @@
 import socket
-from utils import utils, arguments, header
+from utils import utils, arguments, header, responses
 
 # Code execution starts here
 def Main():
@@ -42,12 +42,24 @@ def Main():
             
             # Initialize connection (sender sends SYN flag on 1000)
             if synFlag == 8:
+                # Decode data
+                data = data[12:].decode()
+                # See -> utils.checkReliabilityMatch()
+                if not utils.checkReliabilityMatch(data, reliability):
+                    # Format message
+                    msg = f'Server reliability "{reliability}" does not match client reliability "{data}"'
+                    # See utils.createAndSendPacket()
+                    utils.createAndSendPacket(server, client, 0, 0, 1, 0, msg.encode())
+                    # See -> responses.syntaxError()
+                    responses.syntaxError(msg)
+                    break
+                
                 # See utils.createAndSendPacket()
                 utils.createAndSendPacket(server, client, 0, 0, 12, 0, b'')
                 continue
-            
+                    
             # SR connection
-            if win == 5 and flags == 0:
+            if reliability == "SR":
                 # Add received data to buffer
                 receive_buffer[seq] = data
                 print(f"Received packet {ack}")
@@ -63,7 +75,7 @@ def Main():
                     expected_seq_num += 1
 
             # GBN connection 
-            if win == 5:
+            if reliability == "GBN":
                 # Write received data to image file
                 f.write(data)
                 print(f"Received packet {ack}")

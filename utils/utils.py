@@ -15,3 +15,6 @@ def createAndSendPacket(sender, receiver, ex_packetNum, seq_num, flag, window, d
     packet = header.create_packet(seq_num, ex_packetNum, flag, window, data)
     # Send packet from sender to receiver
     sender.sendto(packet, receiver)
+
+def checkReliabilityMatch(rel1, rel2):
+    return rel1 == rel2

@@ -162,15 +162,25 @@ def handleClientData(client_sd, server, file_path, reliability):
             
         return sendData(client_sd, server, file)
 
-def connectClient(client_sd, ip, port):
+def connectClient(client_sd, ip, port, reliability):
     try:
-        utils.createAndSendPacket(client_sd, (ip, port), 0, 0, 8, 0, b'')
+        data = b''
+
+        if reliability is not None:
+            data = reliability.encode()
+
+        utils.createAndSendPacket(client_sd, (ip, port), 0, 0, 8, 0, data)
 
         data, _ = client_sd.recvfrom(1472)
         headers = data[:12]
 
         _, _, flags, _ = header.parse_header (headers)
+        
         synFlag, ackFlag, _ = header.parse_flags(flags)
+
+        if flags == 1:
+            data = data[12:].decode()
+            responses.connectionRefused(data)
 
         if synFlag + ackFlag != 12:
             responses.connectionRefused({})
