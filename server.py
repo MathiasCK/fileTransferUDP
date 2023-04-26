@@ -16,7 +16,6 @@ def Main():
 
     # Keep track of expected incomming packet
     ex_packetNum = 0
-    ex_ack = 0
 
     while True:
         # Receive packet from client
@@ -33,8 +32,6 @@ def Main():
             continue
 
         if finFlag == 2:
-            if ex_ack != ack:
-                continue
             break
 
         # Check if packet is not the expected packet
@@ -50,10 +47,9 @@ def Main():
         
         # Update expected packet value
         ex_packetNum += 1
-        ex_ack += 1
         
     # Send ack & close socket
-    packet = header.create_packet(ex_packetNum, ex_ack, 4, 0, b'')
+    packet = header.create_packet(ex_packetNum, seq, 4, 0, b'')
     server.sendto(packet, client)
     server.close()
 
