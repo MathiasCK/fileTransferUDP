@@ -153,13 +153,12 @@ def handleClientData(client_sd, server, file_path, reliability):
 
     with open(file_path, 'rb') as file:
 
-        if reliability is not None:
-            if reliability == 'SAW':
-                return stop_and_wait(client_sd, server, file)
-            if reliability == 'GBN':
-                return GBN(client_sd, server, file)
-            if reliability == 'SR':
-                return SR(client_sd, server, file)
+        if reliability == 'SAW':
+            return stop_and_wait(client_sd, server, file)
+        if reliability == 'GBN':
+            return GBN(client_sd, server, file)
+        if reliability == 'SR':
+            return SR(client_sd, server, file)
             
         return sendData(client_sd, server, file)
 
