@@ -44,6 +44,7 @@ def Main():
             if synFlag == 8:
                 # Server responds with SYN/ACK flag (1100)
                 packet = header.create_packet(0, 0, 12, 0, b'')
+                # Send ack to client
                 server.sendto(packet, client)
                 continue
             
