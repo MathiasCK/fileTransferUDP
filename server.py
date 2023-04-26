@@ -42,8 +42,9 @@ def Main():
         if ackFlag != 4:
             continue;
         
-        # See utils -> data_handlers.handleClientData()
-        data_handlers.handleClientData(ack, server, client, data)
+        # Handle client data
+        print(f"Received packet {ack}")
+        server.sendto(str(ack).encode(), client)
         
         # Update expected packet value
         ex_packetNum += 1
