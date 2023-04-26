@@ -94,12 +94,10 @@ def SR(client_sd, server, file):
 
         if next_seq_num < base + window_size and buffer:
             payload = buffer.popleft()
-            
-            packet = header.create_packet(next_seq_num, next_seq_num, 0, 5, payload)
+
+            utils.createAndSendPacket(client_sd, server, next_seq_num, next_seq_num, 0, 5, payload)
 
             print(f"Packet {next_seq_num} sent")
-            
-            client_sd.sendto(packet, server)
 
             unacknowledged_packets[next_seq_num] = payload
             next_seq_num += 1
@@ -117,11 +115,9 @@ def SR(client_sd, server, file):
 
         except socket.timeout:
             for seq_num, payload in unacknowledged_packets.items():
-                packet = header.create_packet(seq_num, seq_num, 4, 5, payload)
+                utils.createAndSendPacket(client_sd, server, seq_num, seq_num, 4, 5, payload)
 
                 print(f"Packet {seq_num} sent")
-            
-                client_sd.sendto(packet, server)
 
     utils.sendFINPacket(client_sd, server, next_seq_num, next_seq_num)
 
