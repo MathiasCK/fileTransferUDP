@@ -1,5 +1,6 @@
 import socket
 from utils import responses, header, utils
+import hashlib
 
 def stop_and_wait(client_sd, ip, port, file):
 
@@ -36,6 +37,51 @@ def stop_and_wait(client_sd, ip, port, file):
             break
         
     client_sd.close()
+
+def make_packet(seq_num, payload):
+    checksum = hashlib.md5(payload).hexdigest()
+    header = f"{seq_num}|{checksum}"
+    return header.encode() + payload
+
+def send_packet(sock, addr, seq_num, payload):
+    packet = make_packet(seq_num, payload)
+    sock.sendto(packet, addr)
+
+def recv_ack(sock):
+    data, addr = sock.recvfrom(1024)
+    return int(data.decode()[3:])
+
+def GBN(client_sd, ip, port, file):
+    window_size = 5
+    base = 0
+    next_seq_num = 0
+    unacknowledged_packets = {}
+    file_data = []
+
+    while True:
+        if next_seq_num < base + window_size:
+            payload = file.read(1460)
+
+            if not payload:
+                break
+
+            send_packet(client_sd, (ip, port), next_seq_num, payload)
+            print(next_seq_num)
+            unacknowledged_packets[next_seq_num] = payload
+            next_seq_num += 1
+
+        try:
+            ack_seq_num = recv_ack(client_sd)
+
+            if ack_seq_num in unacknowledged_packets:
+                base = ack_seq_num + 1
+                del unacknowledged_packets[ack_seq_num]
+
+        except socket.timeout:
+            for seq_num, payload in unacknowledged_packets.items():
+                send_packet(client_sd, (ip, port), seq_num, payload)
+
+    send_packet(client_sd, (ip, port), -1, b'')
 
 def sendData(client_sd, ip, port, file):
 
@@ -74,32 +120,19 @@ def sendData(client_sd, ip, port, file):
 
 def handleClientData(client_sd, ip, port, file_path, reliability):
 
+    print("-------------------------------------------------------------")
+    print(f"A UDP client connected to server {ip}, port {port}")
+    print("-------------------------------------------------------------")
+
     with open(file_path, 'rb') as file:
 
         if reliability is not None:
             if reliability == 'SAW':
                 return stop_and_wait(client_sd, ip, port, file)
+            if reliability == 'GBN':
+                return GBN(client_sd, ip, port, file)
             
         return sendData(client_sd, ip, port, file)
 
-def connectClient(client_sd, ip, port):
-    try:
-        packet = header.create_packet(0, 0, 8, 0, b'')
-        client_sd.sendto(packet, (ip, port))
-
-        data, _ = client_sd.recvfrom(1472)
-        headers = data[:12]
-
-        _, _, flags, _ = header.parse_header (headers)
-        synFlag, ackFlag, _ = header.parse_flags(flags)
-        
-        if synFlag + ackFlag != 12:
-            responses.connectionRefused({})
-        # Print success message
-        print("-------------------------------------------------------------")
-        print(f"A UDP client connected to server {ip}, port {port}")
-        print("-------------------------------------------------------------")
-    except Exception as err:
-        responses.err(err)
 
     

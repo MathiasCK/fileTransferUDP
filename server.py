@@ -1,5 +1,16 @@
 import socket
-from utils import utils, arguments, data_handlers, header
+from utils import utils, arguments, header
+import hashlib
+
+def send_ack(sock, addr, seq_num):
+    ack = f"ACK{seq_num}"
+    sock.sendto(ack.encode(), addr)
+
+def recv_packet(sock):
+    data, addr = sock.recvfrom(1470)
+    header, payload = data[:10], data[10:]
+    seq_num, checksum = header.decode().split('|')
+    return int(seq_num), payload, checksum, addr
 
 def Main():
     # See utils -> arguments.checkServerOpts()
@@ -16,14 +27,32 @@ def Main():
 
     # Keep track of expected incomming packet
     ex_packetNum = 0
+    expected_seq_num = 0
 
     while True:
+        seq_num, _, _, addr = recv_packet(server)
+        print(seq_num)
+
+        if seq_num == -1:
+            break
+
+        if seq_num == expected_seq_num:
+            send_ack(server, addr, seq_num)
+            expected_seq_num += 1
+
+        continue
         # Receive packet from client
         data, client = server.recvfrom(1472)
         
         headers = data[:12]
         seq, ack, flags, win = header.parse_header (headers)
         synFlag, ackFlag, finFlag = header.parse_flags(flags)
+
+        if win == 5:
+            print(seq)
+            server.sendto(str(ack).encode(), client)
+            expected_seq_num += 1
+            continue
 
 
         if synFlag == 8:
@@ -50,8 +79,8 @@ def Main():
         ex_packetNum += 1
         
     # Send ack & close socket
-    packet = header.create_packet(ex_packetNum, seq, 4, 0, b'')
-    server.sendto(packet, client)
+    # packet = header.create_packet(ex_packetNum, seq, 4, 0, b'')
+    # server.sendto(packet, client)
     server.close()
 
 if __name__ == '__main__':
