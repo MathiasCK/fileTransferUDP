@@ -1,6 +1,5 @@
 import socket
-from utils import responses, header, utils
-import hashlib
+from utils import header, utils
 
 def stop_and_wait(client_sd, ip, port, file):
 
@@ -38,25 +37,11 @@ def stop_and_wait(client_sd, ip, port, file):
         
     client_sd.close()
 
-def make_packet(seq_num, payload):
-    checksum = hashlib.md5(payload).hexdigest()
-    header = f"{seq_num}|{checksum}"
-    return header.encode() + payload
-
-def send_packet(sock, addr, seq_num, payload):
-    packet = make_packet(seq_num, payload)
-    sock.sendto(packet, addr)
-
-def recv_ack(sock):
-    data, addr = sock.recvfrom(1024)
-    return int(data.decode()[3:])
-
 def GBN(client_sd, ip, port, file):
     window_size = 5
     base = 0
     next_seq_num = 0
     unacknowledged_packets = {}
-    file_data = []
 
     while True:
         if next_seq_num < base + window_size:
@@ -65,13 +50,17 @@ def GBN(client_sd, ip, port, file):
             if not payload:
                 break
 
-            send_packet(client_sd, (ip, port), next_seq_num, payload)
-            print(next_seq_num)
+            packet = header.create_packet(next_seq_num, next_seq_num, 4, 5, payload)
+
+            print(f"Packet {next_seq_num} sent")
+            
+            client_sd.sendto(packet, (ip, port))
             unacknowledged_packets[next_seq_num] = payload
             next_seq_num += 1
 
         try:
-            ack_seq_num = recv_ack(client_sd)
+            ack, _ = client_sd.recvfrom(1024)
+            ack_seq_num = int(ack.decode())
 
             if ack_seq_num in unacknowledged_packets:
                 base = ack_seq_num + 1
@@ -79,9 +68,13 @@ def GBN(client_sd, ip, port, file):
 
         except socket.timeout:
             for seq_num, payload in unacknowledged_packets.items():
-                send_packet(client_sd, (ip, port), seq_num, payload)
+                packet = header.create_packet(seq_num, seq_num, 4, 5, payload)
 
-    send_packet(client_sd, (ip, port), -1, b'')
+                print(f"Packet {seq_num} sent")
+            
+                client_sd.sendto(packet, (ip, port))
+   
+    utils.sendFINPacket(client_sd, ip, port, next_seq_num, next_seq_num)
 
 def sendData(client_sd, ip, port, file):
 

@@ -1,16 +1,5 @@
 import socket
 from utils import utils, arguments, header
-import hashlib
-
-def send_ack(sock, addr, seq_num):
-    ack = f"ACK{seq_num}"
-    sock.sendto(ack.encode(), addr)
-
-def recv_packet(sock):
-    data, addr = sock.recvfrom(1470)
-    header, payload = data[:10], data[10:]
-    seq_num, checksum = header.decode().split('|')
-    return int(seq_num), payload, checksum, addr
 
 def Main():
     # See utils -> arguments.checkServerOpts()
@@ -30,38 +19,25 @@ def Main():
     expected_seq_num = 0
 
     while True:
-        seq_num, _, _, addr = recv_packet(server)
-        print(seq_num)
-
-        if seq_num == -1:
-            break
-
-        if seq_num == expected_seq_num:
-            send_ack(server, addr, seq_num)
-            expected_seq_num += 1
-
-        continue
-        # Receive packet from client
         data, client = server.recvfrom(1472)
         
         headers = data[:12]
         seq, ack, flags, win = header.parse_header (headers)
         synFlag, ackFlag, finFlag = header.parse_flags(flags)
 
+        if finFlag == 2:
+            break
+
         if win == 5:
-            print(seq)
+            print(f"Received packet {ack}")
             server.sendto(str(ack).encode(), client)
             expected_seq_num += 1
             continue
-
 
         if synFlag == 8:
             packet = header.create_packet(0, 0, 12, 0, b'')
             server.sendto(packet, client)
             continue
-
-        if finFlag == 2:
-            break
 
         # Check if packet is not the expected packet
         if seq != ex_packetNum:
