@@ -12,8 +12,5 @@ def Main():
     # See utils -> data_handlers.handleClientData()
     data_handlers.handleClientData(client_sd, ip, port, file, reliability)
 
-    # Close socket
-    client_sd.close()
-
 if __name__ == '__main__':
     Main()

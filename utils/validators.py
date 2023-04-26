@@ -28,6 +28,6 @@ def isValidTrigger(arg):
        responses.syntaxError("Please provide a valid trigger format (skipack/loss)")
 
 def isValidReliability(arg):
-   isValid = re.match(r"^(?:san|gb|sr)$", arg, re.IGNORECASE)
+   isValid = re.match(r"^(?:saw|gb|sr)$", arg, re.IGNORECASE)
    if str(isValid) == "None":
-       responses.syntaxError("Please provide a valid reliability format (SAN/GB/SR)")
+       responses.syntaxError("Please provide a valid reliability format (SAW/GB/SR)")
