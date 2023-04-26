@@ -6,6 +6,12 @@ def validateCheckSum(payload, checksum):
 def invalidPacket(packet_num, msg):
     print(f"Dropping packet {packet_num} - {msg}")
 
-def sendFINPacket(client_sd, ip, port, seq_num, ex_ack):
+def sendFINPacket(client_sd, server, seq_num, ex_ack):
     packet = header.create_packet(seq_num, ex_ack, 2, 0, b'')
-    client_sd.sendto(packet, (ip, port))
+    client_sd.sendto(packet, server)
+
+def createAndSendPacket(sender, receiver, ex_packetNum, seq_num, flag, window, data):
+    # See header.create_packet()
+    packet = header.create_packet(seq_num, ex_packetNum, flag, window, data)
+    # Send packet from sender to receiver
+    sender.sendto(packet, receiver)

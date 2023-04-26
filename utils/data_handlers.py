@@ -2,7 +2,7 @@ import socket
 from utils import header, utils, responses
 from collections import deque
 
-def stop_and_wait(client_sd, ip, port, file):
+def stop_and_wait(client_sd, server, file):
 
     seq_num = 0
     ex_ack = 0
@@ -13,7 +13,7 @@ def stop_and_wait(client_sd, ip, port, file):
 
         packet = header.create_packet(seq_num, ex_ack, 4, 0, chunk)
 
-        client_sd.sendto(packet, (ip, port))
+        client_sd.sendto(packet, server)
 
         try:
             ack, _ = client_sd.recvfrom(1472)
@@ -33,12 +33,12 @@ def stop_and_wait(client_sd, ip, port, file):
             continue
 
         if not chunk:
-            utils.sendFINPacket(client_sd, ip, port, seq_num, ex_ack)
+            utils.sendFINPacket(client_sd, server, seq_num, ex_ack)
             break
         
     client_sd.close()
 
-def GBN(client_sd, ip, port, file):
+def GBN(client_sd, server, file):
     window_size = 5
     base = 0
     next_seq_num = 0
@@ -55,7 +55,7 @@ def GBN(client_sd, ip, port, file):
 
             print(f"Packet {next_seq_num} sent")
             
-            client_sd.sendto(packet, (ip, port))
+            client_sd.sendto(packet, server)
             unacknowledged_packets[next_seq_num] = payload
             next_seq_num += 1
 
@@ -73,11 +73,11 @@ def GBN(client_sd, ip, port, file):
 
                 print(f"Packet {seq_num} sent")
             
-                client_sd.sendto(packet, (ip, port))
+                client_sd.sendto(packet, server)
    
-    utils.sendFINPacket(client_sd, ip, port, next_seq_num, next_seq_num)
+    utils.sendFINPacket(client_sd, server, next_seq_num, next_seq_num)
 
-def SR(client_sd, ip, port, file):
+def SR(client_sd, server, file):
     window_size = 5
     base = 0
     next_seq_num = 0
@@ -99,7 +99,7 @@ def SR(client_sd, ip, port, file):
 
             print(f"Packet {next_seq_num} sent")
             
-            client_sd.sendto(packet, (ip, port))
+            client_sd.sendto(packet, server)
 
             unacknowledged_packets[next_seq_num] = payload
             next_seq_num += 1
@@ -121,11 +121,11 @@ def SR(client_sd, ip, port, file):
 
                 print(f"Packet {seq_num} sent")
             
-                client_sd.sendto(packet, (ip, port))
+                client_sd.sendto(packet, server)
 
-    utils.sendFINPacket(client_sd, ip, port, next_seq_num, next_seq_num)
+    utils.sendFINPacket(client_sd, server, next_seq_num, next_seq_num)
 
-def sendData(client_sd, ip, port, file):
+def sendData(client_sd, server, file):
 
     seq_num = 0
     ex_ack = 0
@@ -134,9 +134,7 @@ def sendData(client_sd, ip, port, file):
         # Read next chunk from file
         chunk = file.read(1460)
 
-        packet = header.create_packet(seq_num, ex_ack, 4, 0, chunk)
-        
-        client_sd.sendto(packet, (ip, port))
+        utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
 
         ack_received = False
 
@@ -152,27 +150,27 @@ def sendData(client_sd, ip, port, file):
 
             except socket.timeout:
                 print(f"Packet {seq_num} timed out - Resending packet")
-                client_sd.sendto(packet.encode(), (ip, port))
+                client_sd.sendto(packet.encode(), server)
 
         if not chunk:
-            utils.sendFINPacket(client_sd, ip, port, seq_num, ex_ack)
+            utils.sendFINPacket(client_sd, server, seq_num, ex_ack)
             break
         
     client_sd.close()
 
-def handleClientData(client_sd, ip, port, file_path, reliability):
+def handleClientData(client_sd, server, file_path, reliability):
 
     with open(file_path, 'rb') as file:
 
         if reliability is not None:
             if reliability == 'SAW':
-                return stop_and_wait(client_sd, ip, port, file)
+                return stop_and_wait(client_sd, server, file)
             if reliability == 'GBN':
-                return GBN(client_sd, ip, port, file)
+                return GBN(client_sd, server, file)
             if reliability == 'SR':
-                return SR(client_sd, ip, port, file)
+                return SR(client_sd, server, file)
             
-        return sendData(client_sd, ip, port, file)
+        return sendData(client_sd, server, file)
 
 def connectClient(client_sd, ip, port):
     try:

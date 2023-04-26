@@ -42,10 +42,8 @@ def Main():
             
             # Initialize connection (sender sends SYN flag on 1000)
             if synFlag == 8:
-                # Server responds with SYN/ACK flag (1100)
-                packet = header.create_packet(0, 0, 12, 0, b'')
-                # Send ack to client
-                server.sendto(packet, client)
+                # See utils.createAndSendPacket()
+                utils.createAndSendPacket(server, client, 0, 0, 12, 0, b'')
                 continue
             
             # SR connection
@@ -94,11 +92,9 @@ def Main():
             
             # Update expected packet value
             ex_packetNum += 1
-            
-        # Create empty ack packet
-        packet = header.create_packet(ex_packetNum, seq, 4, 0, b'')
-        # Send empty ack with ack flag to client
-        server.sendto(packet, client)
+        
+        # See utils.createAndSendPacket()
+        utils.createAndSendPacket(server, client, seq, ex_packetNum, 4, 0, b'')
         # Close server-client connection
         server.close()
 
