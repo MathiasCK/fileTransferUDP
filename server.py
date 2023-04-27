@@ -76,11 +76,8 @@ def Main():
 
             # GBN connection 
             if reliability == "GBN":
-                # Write received data to image file
-                f.write(data)
-                print(f"Received packet {ack}")
-                # Send ack to client
-                server.sendto(str(ack).encode(), client)
+                # See -> data_handlers.handleGBNData()
+                data_handlers.handleGBNData(client, server, ack, f, data)
                 # Update expected packet value
                 expected_seq_num += 1
                 continue
@@ -91,10 +88,6 @@ def Main():
                 utils.invalidPacket(seq, 'Received out of order')
                 # Continue execution
                 continue
-            
-            # If no ack flag is provided continue (force sender to resend packet)
-            if ackFlag != 4:
-                continue;
             
             # Write data to image
             f.write(data)

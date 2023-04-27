@@ -201,6 +201,13 @@ def handleSRData(receive_buffer, seq, data, ack, client, server, f, expected_seq
         # Delete buffer
         del receive_buffer[expected_seq_num]
 
+def handleGBNData(client, server, ack, f, data):
+    # Write received data to image file
+    f.write(data)
+    print(f"Received packet {ack}")
+    # Send ack to client
+    server.sendto(str(ack).encode(), client)
+
 def initializeClientConnection(server, client, data, reliability):
     # Decode data
     data = data[12:].decode()
