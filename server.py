@@ -15,8 +15,6 @@ def Main():
     print(f"A UDP server is listening on port {str(port)}")
     print("---------------------------------------------")
 
-    # Keep track of expected incomming packet
-    ex_packetNum = 0
     # Keep track of expected sequence number
     expected_seq_num = 0
     # Received buffer
@@ -83,7 +81,7 @@ def Main():
                 continue
 
             # Check if packet is not the expected packet
-            if seq != ex_packetNum:
+            if seq != expected_seq_num:
                 # See -> utils.invalidPacket()
                 utils.invalidPacket(seq, 'Received out of order')
                 # Continue execution
@@ -93,10 +91,10 @@ def Main():
             data_handlers.handleClientData(client, server, ack, data, f)
             
             # Update expected packet value
-            ex_packetNum += 1
+            expected_seq_num += 1
         
         # See utils.createAndSendPacket()
-        utils.createAndSendPacket(server, client, seq, ex_packetNum, 4, 0, b'')
+        utils.createAndSendPacket(server, client, seq, expected_seq_num, 4, 0, b'')
         # Close server-client connection
         server.close()
 
