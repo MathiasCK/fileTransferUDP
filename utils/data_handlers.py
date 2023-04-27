@@ -41,7 +41,7 @@ def stop_and_wait(client_sd, server, file, trigger):
                 expected_ack += 1
                 # Calculate new timeout
                 # See -> utils.calculateNewTimeout()
-                timeout = utils.calculateNewTimeout(start_time, rtt_values)
+                # timeout = utilscalculateNewTimeout(start_time, rtt_values)
             # If expected ack is the same as sequence_number (duplicate happened) continue execution
             elif expected_ack == sequence_number:
                 print(f"Packet {expected_ack} - Duplicate ack received")
@@ -116,7 +116,7 @@ def GBN(client_sd, server, file, trigger):
                 del unacked_packets[ack_num]
                 # Calculate new timeout
                 # See -> utils.calculateNewTimeoutAndPop()
-                timeout = utils.calculateNewTimeoutAndPop(rtt_values)
+                # timeout = utilscalculateNewTimeoutAndPop(rtt_values)
         # If a timeout happens (packet was not sent)
         except socket.timeout:
             # Loop and re-send all unacked packets
@@ -199,7 +199,7 @@ def SR(client_sd, server, file, trigger):
                     window_size_start = ack_num + 1
                 # Calculate new timeout
                 # See -> utils.calculateNewTimeoutAndPop()
-                timeout = utils.calculateNewTimeoutAndPop(rtt_values)
+                # timeout = utilscalculateNewTimeoutAndPop(rtt_values)
         # If a timeout happens (packet was not sent)
         except socket.timeout:
             print(f"Packet {sequence_number} timed out (SR) - resending packet")
@@ -255,7 +255,7 @@ def handleData(client_sd, server, file, trigger):
                     expected_ack += 1
                     # Calculate new timeout
                     # See -> utils.calculateNewTimeout()
-                    timeout = utils.calculateNewTimeout(start_time, rtt_values)
+                    # timeout = utilscalculateNewTimeout(start_time, rtt_values)
             # If a timeout happens (packet was not sent)
             except socket.timeout:
                 print(f"Packet {sequence_number} timed out - Resending packet")
