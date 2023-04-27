@@ -87,12 +87,13 @@ def GBN(client_sd, server, file, trigger):
    
     utils.sendFINPacket(client_sd, server, next_seq_num, next_seq_num)
 
-def SR(client_sd, server, file):
+def SR(client_sd, server, file, trigger):
     window_size = 5
     base = 0
     next_seq_num = 0
     unacknowledged_packets = {}
     buffer = deque()
+
     while True:
         if len(buffer) < window_size:
             payload = file.read(1460)
@@ -103,7 +104,13 @@ def SR(client_sd, server, file):
         if next_seq_num < base + window_size and buffer:
             payload = buffer.popleft()
 
-            utils.createAndSendPacket(client_sd, server, next_seq_num, next_seq_num, 0, 5, payload)
+            packet_send_prob = 1
+
+            if trigger is not None:
+                packet_send_prob = random.random()
+            
+            if packet_send_prob > 0.1:
+                utils.createAndSendPacket(client_sd, server, next_seq_num, next_seq_num, 0, 5, payload)
 
             print(f"Packet {next_seq_num} sent")
 
@@ -175,7 +182,7 @@ def handleReliability(client_sd, server, file_path, trigger, reliability):
         if reliability == 'GBN':
             return GBN(client_sd, server, file, trigger)
         if reliability == 'SR':
-            return SR(client_sd, server, file)
+            return SR(client_sd, server, file, trigger)
         return sendData(client_sd, server, file, trigger)
 
 def handleSRData(client, server, ack, data, f, receive_buffer, seq, expected_seq_num):
