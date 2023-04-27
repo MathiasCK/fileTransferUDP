@@ -12,13 +12,7 @@ def stop_and_wait(client_sd, server, file, trigger):
         # Read next chunk from file
         chunk = file.read(1460)
 
-        packet_send_prob = 1
-
-        if trigger is not None:
-            packet_send_prob = random.random()
-        
-        if packet_send_prob > 0.1:
-            utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
+        utils.sendData(client_sd, server, seq_num, ex_ack, 4, 0, chunk, trigger)
 
         try:
             client_sd.settimeout(0.5)
@@ -55,14 +49,8 @@ def GBN(client_sd, server, file, trigger):
 
             if not payload:
                 break
-            
-            packet_send_prob = 1
 
-            if trigger is not None:
-                packet_send_prob = random.random()
-            
-            if packet_send_prob > 0.1:
-                utils.createAndSendPacket(client_sd, server, next_seq_num, next_seq_num, 4, 5, payload)
+            utils.sendData(client_sd, server, next_seq_num, next_seq_num, 4, 5, payload, trigger)
 
             print(f"Packet {next_seq_num} sent")
             
@@ -104,13 +92,7 @@ def SR(client_sd, server, file, trigger):
         if next_seq_num < base + window_size and buffer:
             payload = buffer.popleft()
 
-            packet_send_prob = 1
-
-            if trigger is not None:
-                packet_send_prob = random.random()
-            
-            if packet_send_prob > 0.1:
-                utils.createAndSendPacket(client_sd, server, next_seq_num, next_seq_num, 0, 5, payload)
+            utils.sendData(client_sd, server, next_seq_num, next_seq_num, 0, 5, payload, trigger)
 
             print(f"Packet {next_seq_num} sent")
 
@@ -135,7 +117,7 @@ def SR(client_sd, server, file, trigger):
 
     utils.sendFINPacket(client_sd, server, next_seq_num, next_seq_num)
 
-def sendData(client_sd, server, file, trigger):
+def handleData(client_sd, server, file, trigger):
 
     seq_num = 0
     ex_ack = 0
@@ -144,13 +126,7 @@ def sendData(client_sd, server, file, trigger):
         # Read next chunk from file
         chunk = file.read(1460)
 
-        packet_send_prob = 1
-
-        if trigger is not None:
-            packet_send_prob = random.random()
-        
-        if packet_send_prob > 0.1:
-            utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
+        utils.sendData(client_sd, server, seq_num, ex_ack, 4, 0, chunk, trigger)
         
         ack_received = False
 
@@ -183,7 +159,7 @@ def handleReliability(client_sd, server, file_path, trigger, reliability):
             return GBN(client_sd, server, file, trigger)
         if reliability == 'SR':
             return SR(client_sd, server, file, trigger)
-        return sendData(client_sd, server, file, trigger)
+        return handleData(client_sd, server, file, trigger)
 
 def handleSRData(client, server, ack, data, f, receive_buffer, seq, expected_seq_num):
     # Add received data to buffer

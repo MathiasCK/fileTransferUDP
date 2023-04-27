@@ -22,3 +22,12 @@ def checkReliabilityMatch(rel1, rel2):
 
 def handleSkipAck():
     return random.randint(10, 20)
+
+def sendData(client, server, seq, ack, flag, window, data, trigger = None):
+    packet_send_prob = 1
+
+    if trigger is not None:
+        packet_send_prob = random.random()
+    
+    if packet_send_prob > 0.1:
+        createAndSendPacket(client, server, seq, ack, flag, window, data)
