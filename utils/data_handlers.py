@@ -149,7 +149,7 @@ def sendData(client_sd, server, file):
         
     client_sd.close()
 
-def handleClientData(client_sd, server, file_path, reliability):
+def handleReliability(client_sd, server, file_path, reliability):
 
     with open(file_path, 'rb') as file:
 

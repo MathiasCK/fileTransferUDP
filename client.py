@@ -10,7 +10,7 @@ def Main():
     # See utils -> data_handlers.connectClient()
     data_handlers.connectClient(client_sd, ip, port, reliability)
     # See utils -> data_handlers.handleClientData()
-    data_handlers.handleClientData(client_sd, (ip, port), file, reliability)
+    data_handlers.handleReliability(client_sd, (ip, port), file, reliability)
 
 if __name__ == '__main__':
     Main()
