@@ -14,6 +14,7 @@ def stop_and_wait(client_sd, server, file):
         utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
 
         try:
+            client_sd.settimeout(0.5)
             ack, _ = client_sd.recvfrom(1472)
 
             ack_num = int(ack.decode())
@@ -26,8 +27,7 @@ def stop_and_wait(client_sd, server, file):
                 print(f"Packet {ex_ack} - Duplicate ack received")
                 continue
         except socket.timeout:
-            print(f"Packet {seq_num} timed - Stop and wait")
-            client_sd.settimeout(0.5)
+            print(f"Packet {seq_num} timed out (stop_and_wait) - resending packet")
             continue
 
         if not chunk:
@@ -57,6 +57,7 @@ def GBN(client_sd, server, file):
             next_seq_num += 1
 
         try:
+            client_sd.settimeout(0.5)
             ack, _ = client_sd.recvfrom(1024)
             ack_seq_num = int(ack.decode())
 
@@ -65,6 +66,7 @@ def GBN(client_sd, server, file):
                 del unacknowledged_packets[ack_seq_num]
 
         except socket.timeout:
+            print(f"Packet {next_seq_num} timed out (GBN) - resending packet")
             for seq_num, payload in unacknowledged_packets.items():
                 utils.createAndSendPacket(client_sd, server, seq_num, seq_num, 4, 5, payload)
 
@@ -98,6 +100,7 @@ def SR(client_sd, server, file):
             next_seq_num += 1
 
         try:
+            client_sd.settimeout(0.5)
             ack, _ = client_sd.recvfrom(1024)
             ack_seq_num = int(ack.decode())
 
@@ -109,6 +112,7 @@ def SR(client_sd, server, file):
                         base += 1
 
         except socket.timeout:
+            print(f"Packet {next_seq_num} timed out (SR) - resending packet")
             for seq_num, payload in unacknowledged_packets.items():
                 utils.createAndSendPacket(client_sd, server, seq_num, seq_num, 4, 5, payload)
 
@@ -131,6 +135,7 @@ def sendData(client_sd, server, file):
 
         while not ack_received:
             try:
+                client_sd.settimeout(0.5)
                 ack, _ = client_sd.recvfrom(1472)
 
                 if int(ack.decode()) == seq_num:
