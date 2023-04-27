@@ -5,13 +5,21 @@
   "main": "application.py",
   "scripts": {
     "start:server": "python3 application.py -s",
+    "start:server_t": "python3 application.py -s -t skipack",
     "start:server_SAW": "python3 application.py -s -r SAW",
     "start:server_GBN": "python3 application.py -s -r GBN",
     "start:server_SR": "python3 application.py -s -r SR",
-    "start:client": "python3 application.py -c -f Photo.jpg",
-    "start:client_SAW": "python3 application.py -c -f Photo.jpg -r SAW",
-    "start:client_GBN": "python3 application.py -c -f Photo.jpg -r GBN",
-    "start:client_SR": "python3 application.py -c -f Photo.jpg -r SR"
+    "start:server_SAW_t": "python3 application.py -s -r SAW -t skipack",
+    "start:server_GBN_t": "python3 application.py -s -r GBN -t skipack",
+    "start:server_SR_t": "python3 application.py -s -r SR -t skipack",
+    "start:client": "python3 application.py -c",
+    "start:client_t": "python3 application.py -c -t loss",
+    "start:client_SAW": "python3 application.py -c -r SAW",
+    "start:client_GBN": "python3 application.py -c -r GBN",
+    "start:client_SR": "python3 application.py -c -r SR",
+    "start:client_SAW_t": "python3 application.py -c -r SAW -t loss",
+    "start:client_GBN_t": "python3 application.py -c -r GBN -t loss",
+    "start:client_SR_t": "python3 application.py -c -r SR -t loss"
   },
   "repository": {
     "type": "git",
