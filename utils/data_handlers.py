@@ -48,7 +48,13 @@ def GBN(client_sd, server, file, trigger):
     window_size = 5
     base = 0
     next_seq_num = 0
+    timeout = 0.5
+
+    rtt_values = []
     unacknowledged_packets = {}
+
+    start_time = time.time()
+    rtt_values.append(start_time)
 
     while True:
         if next_seq_num < base + window_size:
@@ -65,11 +71,18 @@ def GBN(client_sd, server, file, trigger):
             next_seq_num += 1
 
         try:
-            client_sd.settimeout(0.5)
+            client_sd.settimeout(timeout)
             ack, _ = client_sd.recvfrom(1024)
             ack_seq_num = int(ack.decode())
 
             if ack_seq_num in unacknowledged_packets:
+                end_time = time.time()
+                rtt = end_time - rtt_values.pop(0)
+                if len(rtt_values) > 10:
+                    rtt_values.pop(0)
+                rtt_values.append(rtt)
+                timeout = sum(rtt_values) / len(rtt_values) * 4
+
                 base = ack_seq_num + 1
                 del unacknowledged_packets[ack_seq_num]
 
