@@ -188,7 +188,7 @@ def connectClient(client_sd, ip, port, reliability):
     except Exception as err:
         responses.err(err)
 
-def handleSRData(receive_buffer, seq, data, ack, client, server, f, expected_seq_num):
+def handleSRData(client, server, ack, data, f, receive_buffer, seq, expected_seq_num):
     # Add received data to buffer
     receive_buffer[seq] = data
     print(f"Received packet {ack}")
@@ -201,7 +201,7 @@ def handleSRData(receive_buffer, seq, data, ack, client, server, f, expected_seq
         # Delete buffer
         del receive_buffer[expected_seq_num]
 
-def handleGBNData(client, server, ack, f, data):
+def handleGBNData(client, server, ack, data, f):
     # Write received data to image file
     f.write(data)
     print(f"Received packet {ack}")

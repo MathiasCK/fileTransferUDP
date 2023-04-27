@@ -70,15 +70,15 @@ def Main():
             # SR connection
             if reliability == "SR":
                 # See data_handlers.handleSRData()
-                data_handlers.handleSRData(receive_buffer, seq, data, ack, client, server, f, expected_seq_num)
+                data_handlers.handleSRData(client, server, ack, data, f, receive_buffer, seq, expected_seq_num)
             # GBN connection 
             elif reliability == "GBN":
                 # See -> data_handlers.handleGBNData()
-                data_handlers.handleGBNData(client, server, ack, f, data)
+                data_handlers.handleGBNData(client, server, ack, data, f)
             else:
                 # See -> data_handlers.handleClientData()
                 data_handlers.handleClientData(client, server, ack, data, f)
-            
+
             # Update expected packet value
             expected_seq_num += 1
         
