@@ -1,7 +1,6 @@
 import socket
 from utils import utils, responses
 from collections import deque
-import random
 
 def stop_and_wait(client_sd, server, file, trigger):
 
