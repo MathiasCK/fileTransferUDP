@@ -1,5 +1,31 @@
 import socket
-from utils import arguments, data_handlers
+from utils import arguments, data_handlers, utils, header, responses
+
+def connectClient(client_sd, ip, port, reliability):
+    try:
+        data = str(reliability).encode()
+
+        utils.createAndSendPacket(client_sd, (ip, port), 0, 0, 8, 0, data)
+
+        data, _ = client_sd.recvfrom(1472)
+        headers = data[:12]
+
+        _, _, flags, _ = header.parse_header (headers)
+        
+        synFlag, ackFlag, _ = header.parse_flags(flags)
+
+        if flags == 1:
+            data = data[12:].decode()
+            responses.connectionRefused(data)
+
+        if synFlag + ackFlag != 12:
+            responses.connectionRefused({})
+        # Print success message
+        print("-------------------------------------------------------------")
+        print(f"A UDP client connected to server {ip}, port {port}")
+        print("-------------------------------------------------------------")
+    except Exception as err:
+        responses.err(err)
 
 def Main():
     # Create client socket
@@ -7,8 +33,8 @@ def Main():
     # Get client optional arguments (see arguments.py -> checkClientOpts)
     ip, port, file, trigger, reliability = arguments.checkClientOpts()
 
-    # See utils -> data_handlers.connectClient()
-    data_handlers.connectClient(client_sd, ip, port, reliability)
+    # See utils -> connectClient()
+    connectClient(client_sd, ip, port, reliability)
     # See utils -> data_handlers.handleClientData()
     data_handlers.handleReliability(client_sd, (ip, port), file, reliability)
 

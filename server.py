@@ -1,20 +1,7 @@
 import socket
 from utils import utils, arguments, header, data_handlers
 
-# Code execution starts here
-def Main():
-    # See utils -> arguments.checkServerOpts()
-    bind, port, trigger, reliability, file = arguments.checkServerOpts()
-    # Set up server socket
-    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # Bind server socket
-    server.bind((bind, port))
-
-    # Print success message
-    print("---------------------------------------------")
-    print(f"A UDP server is listening on port {str(port)}")
-    print("---------------------------------------------")
-
+def handleConnections(server, trigger, reliability, file):
     # Keep track of expected sequence number
     expected_seq_num = 0
     # Received buffer
@@ -87,6 +74,22 @@ def Main():
         utils.createAndSendPacket(server, client, seq, expected_seq_num, 4, 0, b'')
         # Close server-client connection
         server.close()
+
+# Code execution starts here
+def Main():
+    # See utils -> arguments.checkServerOpts()
+    bind, port, trigger, reliability, file = arguments.checkServerOpts()
+    # Set up server socket
+    server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # Bind server socket
+    server.bind((bind, port))
+
+    # Print success message
+    print("---------------------------------------------")
+    print(f"A UDP server is listening on port {str(port)}")
+    print("---------------------------------------------")
+
+    handleConnections(server, trigger, reliability, file)
 
 if __name__ == '__main__':
     Main()

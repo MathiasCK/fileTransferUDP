@@ -150,43 +150,14 @@ def sendData(client_sd, server, file):
     client_sd.close()
 
 def handleReliability(client_sd, server, file_path, reliability):
-
     with open(file_path, 'rb') as file:
-
         if reliability == 'SAW':
             return stop_and_wait(client_sd, server, file)
         if reliability == 'GBN':
             return GBN(client_sd, server, file)
         if reliability == 'SR':
             return SR(client_sd, server, file)
-            
         return sendData(client_sd, server, file)
-
-def connectClient(client_sd, ip, port, reliability):
-    try:
-        data = str(reliability).encode()
-
-        utils.createAndSendPacket(client_sd, (ip, port), 0, 0, 8, 0, data)
-
-        data, _ = client_sd.recvfrom(1472)
-        headers = data[:12]
-
-        _, _, flags, _ = header.parse_header (headers)
-        
-        synFlag, ackFlag, _ = header.parse_flags(flags)
-
-        if flags == 1:
-            data = data[12:].decode()
-            responses.connectionRefused(data)
-
-        if synFlag + ackFlag != 12:
-            responses.connectionRefused({})
-        # Print success message
-        print("-------------------------------------------------------------")
-        print(f"A UDP client connected to server {ip}, port {port}")
-        print("-------------------------------------------------------------")
-    except Exception as err:
-        responses.err(err)
 
 def handleSRData(client, server, ack, data, f, receive_buffer, seq, expected_seq_num):
     # Add received data to buffer
