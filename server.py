@@ -49,16 +49,13 @@ def Main():
                 i = seq
                 continue
 
-            # Parse header flags
-            synFlag, ackFlag, finFlag = header.parse_flags(flags)
-
             # Data transfer is finished (fin flag == 0010)
-            if finFlag == 2:
+            if flags == 2:
                 # Break execution
                 break
             
             # Initialize connection (sender sends SYN flag on 1000)
-            if synFlag == 8:
+            if flags == 8:
                 # See -> data_handlers.initializeClientConnection()
                 data_handlers.initializeClientConnection(server, client, data, reliability)
                 continue
