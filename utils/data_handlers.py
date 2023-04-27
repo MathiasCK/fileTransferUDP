@@ -188,6 +188,19 @@ def connectClient(client_sd, ip, port, reliability):
     except Exception as err:
         responses.err(err)
 
+def handleSRData(receive_buffer, seq, data, ack, client, server, f, expected_seq_num):
+    # Add received data to buffer
+    receive_buffer[seq] = data
+    print(f"Received packet {ack}")
+    # Send ack to client
+    server.sendto(str(ack).encode(), client)
+
+    while expected_seq_num in receive_buffer:
+        # Write received data to image file
+        f.write(receive_buffer[expected_seq_num])
+        # Delete buffer
+        del receive_buffer[expected_seq_num]
+
 def initializeClientConnection(server, client, data, reliability):
     # Decode data
     data = data[12:].decode()

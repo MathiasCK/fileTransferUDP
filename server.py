@@ -50,6 +50,7 @@ def Main():
             if trigger is not None and seq % trigger == 0 and seq != 0 and i != seq:
                 i = seq
                 continue
+
             # Parse header flags
             synFlag, ackFlag, finFlag = header.parse_flags(flags)
 
@@ -66,20 +67,11 @@ def Main():
                     
             # SR connection
             if reliability == "SR":
-                # Add received data to buffer
-                receive_buffer[seq] = data
-                print(f"Received packet {ack}")
-                # Send ack to client
-                server.sendto(str(ack).encode(), client)
+                # See data_handlers.handleSRData()
+                data_handlers.handleSRData(receive_buffer, seq, data, ack, client, server, f, expected_seq_num)
 
-                while expected_seq_num in receive_buffer:
-                    # Write received data to image file
-                    f.write(receive_buffer[expected_seq_num])
-                    # Delete buffer
-                    del receive_buffer[expected_seq_num]
-                    # Update seq value
-                    expected_seq_num += 1
-                
+                # Update seq value
+                expected_seq_num += 1
                 continue
 
             # GBN connection 
