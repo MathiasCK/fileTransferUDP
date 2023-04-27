@@ -137,43 +137,61 @@ def SR(client_sd, server, file, trigger):
 
     utils.sendFINPacket(client_sd, server, next_seq_num, next_seq_num)
 
+# Handle client data with default reliability
+# @client_sd -> client socket
+# @server -> server socket
+# @file -> file for dispatch
+# @trigger -> trigger value (-t flag) - Default None
 def handleData(client_sd, server, file, trigger):
-    seq_num = 0
-    ex_ack = 0
+    # Default starting sequence number
+    sequence_number = 0
+    # Default starting ack
+    expected_ack = 0
+    # Default timeout
     timeout = 0.5
-
+    # All rtt values received
     rtt_values = []
+    # Time since start of data transfer
     start_time = time.time()
 
     while True:
         # Read next chunk from file
         chunk = file.read(1460)
+        # See -> utils.sendData()
+        utils.sendData(client_sd, server, sequence_number, expected_ack, 4, 0, chunk, trigger)
 
-        utils.sendData(client_sd, server, seq_num, ex_ack, 4, 0, chunk, trigger)
-        
+        # Boolean value (ack not yet received)
         ack_received = False
-
         while not ack_received:
             try:
+                # Set default timeout
                 client_sd.settimeout(timeout)
+                # Receive data (ack) from client
                 ack, _ = client_sd.recvfrom(1472)
-
-                if int(ack.decode()) == seq_num:
+                # Decode ack from data
+                ack_num = int(ack.decode())
+                # If ack is the same as sequence number
+                if ack_num == sequence_number:
+                    # Update boolean
                     ack_received = True
-                    print(f"Packet {seq_num} sent")
-                    seq_num += 1
-                    ex_ack += 1
-
+                    print(f"Packet {sequence_number} sent")
+                    # Update sequence number and ack -> send next packet
+                    sequence_number += 1
+                    expected_ack += 1
+                    # Calculate new timeout
+                    # See -> utils.calculateNewTimeout()
                     timeout = utils.calculateNewTimeout(start_time, rtt_values)
-
+            # If a timeout happens (packet was not sent)
             except socket.timeout:
-                print(f"Packet {seq_num} timed out - Resending packet")
-                utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
-
+                print(f"Packet {sequence_number} timed out - Resending packet")
+                # Send packet again
+                utils.createAndSendPacket(client_sd, server, sequence_number, expected_ack, 4, 0, chunk)
+        # If no chunk -> packet transfer is finished
         if not chunk:
-            utils.sendFINPacket(client_sd, server, seq_num, ex_ack)
+            # See -> utils.sendFINPacket()
+            utils.sendFINPacket(client_sd, server, sequence_number, expected_ack)
             break
-        
+    # Close client connection
     client_sd.close()
 
 # Handle -r flag (if provided) from client
