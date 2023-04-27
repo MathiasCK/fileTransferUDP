@@ -1,6 +1,7 @@
 import socket
-from utils import header, utils, responses
+from utils import utils, responses
 from collections import deque
+import random
 
 def stop_and_wait(client_sd, server, file):
 
@@ -115,7 +116,7 @@ def SR(client_sd, server, file):
 
     utils.sendFINPacket(client_sd, server, next_seq_num, next_seq_num)
 
-def sendData(client_sd, server, file):
+def sendData(client_sd, server, file, trigger):
 
     seq_num = 0
     ex_ack = 0
@@ -124,8 +125,14 @@ def sendData(client_sd, server, file):
         # Read next chunk from file
         chunk = file.read(1460)
 
-        utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
+        packet_send_prob = 1
 
+        if trigger is not None:
+            packet_send_prob = random.random()
+        
+        if packet_send_prob > 0.1:
+            utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
+        
         ack_received = False
 
         while not ack_received:
@@ -149,7 +156,7 @@ def sendData(client_sd, server, file):
         
     client_sd.close()
 
-def handleReliability(client_sd, server, file_path, reliability):
+def handleReliability(client_sd, server, file_path, trigger, reliability):
     with open(file_path, 'rb') as file:
         if reliability == 'SAW':
             return stop_and_wait(client_sd, server, file)
@@ -157,7 +164,7 @@ def handleReliability(client_sd, server, file_path, reliability):
             return GBN(client_sd, server, file)
         if reliability == 'SR':
             return SR(client_sd, server, file)
-        return sendData(client_sd, server, file)
+        return sendData(client_sd, server, file, trigger)
 
 def handleSRData(client, server, ack, data, f, receive_buffer, seq, expected_seq_num):
     # Add received data to buffer

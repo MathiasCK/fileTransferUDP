@@ -36,7 +36,7 @@ def Main():
     # See utils -> connectClient()
     connectClient(client_sd, ip, port, reliability)
     # See utils -> data_handlers.handleClientData()
-    data_handlers.handleReliability(client_sd, (ip, port), file, reliability)
+    data_handlers.handleReliability(client_sd, (ip, port), file, trigger, reliability)
 
 if __name__ == '__main__':
     Main()

@@ -27,6 +27,8 @@ def checkClientOpts():
     trigger = None
     global reliability
     reliability = None
+    global file
+    file = 'Photo.jpg'
 
     # Check default values should be overwritten
     for opt, arg in opts:
