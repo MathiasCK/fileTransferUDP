@@ -208,6 +208,13 @@ def handleGBNData(client, server, ack, f, data):
     # Send ack to client
     server.sendto(str(ack).encode(), client)
 
+def handleClientData(client, server, ack, data, f):
+    # Write data to image
+    f.write(data)
+    print(f"Received packet {ack}")
+    # Send ack to client
+    server.sendto(str(ack).encode(), client)
+
 def initializeClientConnection(server, client, data, reliability):
     # Decode data
     data = data[12:].decode()

@@ -89,11 +89,8 @@ def Main():
                 # Continue execution
                 continue
             
-            # Write data to image
-            f.write(data)
-            print(f"Received packet {ack}")
-            # Send ack to client
-            server.sendto(str(ack).encode(), client)
+            # See -> data_handlers.handleClientData()
+            data_handlers.handleClientData(client, server, ack, data, f)
             
             # Update expected packet value
             ex_packetNum += 1
