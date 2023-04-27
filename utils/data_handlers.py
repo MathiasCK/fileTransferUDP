@@ -66,8 +66,8 @@ def GBN(client_sd, server, file):
                 del unacknowledged_packets[ack_seq_num]
 
         except socket.timeout:
-            print(f"Packet {next_seq_num} timed out (GBN) - resending packet")
             for seq_num, payload in unacknowledged_packets.items():
+                print(f"Packet {seq_num} timed out (GBN) - resending packet")
                 utils.createAndSendPacket(client_sd, server, seq_num, seq_num, 4, 5, payload)
 
                 print(f"Packet {seq_num} sent")
