@@ -78,6 +78,7 @@ def GBN(client_sd, server, file, trigger):
     rtt_values = []
     # Time since start of data transfer
     start_time = time.time()
+    # Append start time to rtt_values
     rtt_values.append(start_time)
 
     while True:
@@ -88,8 +89,6 @@ def GBN(client_sd, server, file, trigger):
 
             # Break execution if no payload (data transfer complete)
             if not payload:
-                # See -> utils.sendFINPacket()
-                utils.sendFINPacket(client_sd, server, sequence_number, sequence_number)
                 break
             
             # See -> utils.sendData()
@@ -125,57 +124,93 @@ def GBN(client_sd, server, file, trigger):
                 print(f"Packet {seq_num} timed out (GBN) - resending packet")
                 # See utils.createAndSendPacket()
                 utils.createAndSendPacket(client_sd, server, seq_num, seq_num, 4, 5, payload)
+    # See -> utils.sendFINPacket()
+    utils.sendFINPacket(client_sd, server, sequence_number, sequence_number)
     # Close client connection
     client_sd.close()
 
+# Handle client data with SR reliability
+# @client_sd -> client socket
+# @server -> server socket
+# @file -> file for dispatch
+# @trigger -> trigger value (-t flag) - Default None
 def SR(client_sd, server, file, trigger):
+    # Default window size
     window_size = 5
-    base = 0
-    next_seq_num = 0
+    # Starting window size
+    window_size_start = 0
+    # Default starting sequence number
+    sequence_number = 0
+    # Default timeout
     timeout = 0.5
-    unacknowledged_packets = {}
+    # Packets where no ack is received
+    unacked_packets = {}
+    # Buffer
     buffer = deque()
+    # All rtt values received
     rtt_values = []
-
+    # Time since start of data transfer
     start_time = time.time()
+    # Append start time to rtt_values
     rtt_values.append(start_time)
 
     while True:
+        # As long as the buffer is less than the window size
         if len(buffer) < window_size:
+            # Read data from file
             payload = file.read(1460)
-            if payload:
-                buffer.append(payload)
-            else:
+            # Break execution if no payload (data transfer complete)
+            if not payload:
                 break
-        if next_seq_num < base + window_size and buffer:
+            # Add the payload to the buffer
+            buffer.append(payload)
+        
+        # As long as the sequence number is less than starting window size + the total window size (window size is big enough) and buffer is not None
+        if sequence_number < window_size_start + window_size and buffer:
+            # Get latest payload from buffer
             payload = buffer.popleft()
+            # See -> utils.sendData()
+            utils.sendData(client_sd, server, sequence_number, sequence_number, 0, 5, payload, trigger)
 
-            utils.sendData(client_sd, server, next_seq_num, next_seq_num, 0, 5, payload, trigger)
+            print(f"Packet {sequence_number} sent")
 
-            print(f"Packet {next_seq_num} sent")
-
-            unacknowledged_packets[next_seq_num] = payload
-            next_seq_num += 1
+            # Add packet to unack packet -> packet is not yet acked
+            unacked_packets[sequence_number] = payload
+            # Update sequence number
+            sequence_number += 1
 
         try:
+            # Set default timeout
             client_sd.settimeout(timeout)
-            ack, _ = client_sd.recvfrom(1024)
-            ack_seq_num = int(ack.decode())
-
-            if ack_seq_num in unacknowledged_packets:
+            # Receive data (ack) from client
+            ack, _ = client_sd.recvfrom(1472)
+            # Decode ack from data
+            ack_num = int(ack.decode())
+            # If the ack is found in unacked_packets
+            if ack_num in unacked_packets:
+                # Delete ack from unacked_packets -> (mark packet as acked)
+                del unacked_packets[ack_num]
+                # If there is any more unacked packets
+                if unacked_packets:
+                    # Set the beginning window size to the smallest unacked packet
+                    window_size_start = min(unacked_packets)
+                else:
+                    # Update window size by 1
+                    window_size_start = ack_num + 1
+                # Calculate new timeout
+                # See -> utils.calculateNewTimeoutAndPop()
                 timeout = utils.calculateNewTimeoutAndPop(rtt_values)
-
-                del unacknowledged_packets[ack_seq_num]
-                base = min(unacknowledged_packets) if unacknowledged_packets else ack_seq_num + 1
-
+        # If a timeout happens (packet was not sent)
         except socket.timeout:
-            print(f"Packet {next_seq_num} timed out (SR) - resending packet")
-            for seq_num, payload in unacknowledged_packets.items():
+            print(f"Packet {sequence_number} timed out (SR) - resending packet")
+            # Loop and re-send all unacked packets
+            for seq_num, payload in unacked_packets.items():
+                # See -> utils.createAndSendPacket()
                 utils.createAndSendPacket(client_sd, server, seq_num, seq_num, 4, 5, payload)
-
-                print(f"Packet {seq_num} sent")
-
-    utils.sendFINPacket(client_sd, server, next_seq_num, next_seq_num)
+    # See -> utils.sendFINPacket()
+    utils.sendFINPacket(client_sd, server, sequence_number, sequence_number)
+    # Close client connection
+    client_sd.close()
 
 # Handle client data with default reliability
 # @client_sd -> client socket
@@ -225,6 +260,7 @@ def handleData(client_sd, server, file, trigger):
             except socket.timeout:
                 print(f"Packet {sequence_number} timed out - Resending packet")
                 # Send packet again
+                # See -> utils.createAndSendPacket()
                 utils.createAndSendPacket(client_sd, server, sequence_number, expected_ack, 4, 0, chunk)
         # If no chunk -> packet transfer is finished
         if not chunk:
