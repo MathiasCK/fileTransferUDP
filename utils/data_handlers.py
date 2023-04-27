@@ -80,7 +80,6 @@ def SR(client_sd, server, file):
     next_seq_num = 0
     unacknowledged_packets = {}
     buffer = deque()
-    
     while True:
         if len(buffer) < window_size:
             payload = file.read(1460)
@@ -88,7 +87,6 @@ def SR(client_sd, server, file):
                 buffer.append(payload)
             else:
                 break
-
         if next_seq_num < base + window_size and buffer:
             payload = buffer.popleft()
 
@@ -106,10 +104,7 @@ def SR(client_sd, server, file):
 
             if ack_seq_num in unacknowledged_packets:
                 del unacknowledged_packets[ack_seq_num]
-                if ack_seq_num == base:
-                    base += 1
-                    while base in unacknowledged_packets:
-                        base += 1
+                base = min(unacknowledged_packets) if unacknowledged_packets else ack_seq_num + 1
 
         except socket.timeout:
             print(f"Packet {next_seq_num} timed out (SR) - resending packet")
