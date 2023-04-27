@@ -75,6 +75,7 @@ def Main():
             elif reliability == "GBN":
                 # See -> data_handlers.handleGBNData()
                 data_handlers.handleGBNData(client, server, ack, data, f)
+            # SAW or regular connection
             else:
                 # See -> data_handlers.handleClientData()
                 data_handlers.handleClientData(client, server, ack, data, f)
