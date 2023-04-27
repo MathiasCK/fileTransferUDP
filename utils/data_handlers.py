@@ -138,9 +138,12 @@ def SR(client_sd, server, file, trigger):
     utils.sendFINPacket(client_sd, server, next_seq_num, next_seq_num)
 
 def handleData(client_sd, server, file, trigger):
-
     seq_num = 0
     ex_ack = 0
+    timeout = 0.5
+
+    rtt_values = []
+    start_time = time.time()
 
     while True:
         # Read next chunk from file
@@ -152,7 +155,7 @@ def handleData(client_sd, server, file, trigger):
 
         while not ack_received:
             try:
-                client_sd.settimeout(0.5)
+                client_sd.settimeout(timeout)
                 ack, _ = client_sd.recvfrom(1472)
 
                 if int(ack.decode()) == seq_num:
@@ -160,6 +163,10 @@ def handleData(client_sd, server, file, trigger):
                     print(f"Packet {seq_num} sent")
                     seq_num += 1
                     ex_ack += 1
+
+                    rtt = time.time() - start_time
+                    rtt_values.append(rtt)
+                    timeout = sum(rtt_values) / len(rtt_values) * 4
 
             except socket.timeout:
                 print(f"Packet {seq_num} timed out - Resending packet")
