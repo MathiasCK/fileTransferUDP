@@ -43,38 +43,21 @@ def Main():
             # See -> header.parse_header()
             seq, ack, flags, win = header.parse_header (headers)
 
-            # Skip ack if the skipack flag is provided
-            # Explanation: The trigger value wil skip every "trigger"th incomming sequence
-            if trigger is not None and seq % trigger == 0 and seq != 0 and i != seq:
-                i = seq
-                continue
-
             # Data transfer is finished (fin flag == 0010)
             if flags == 2:
                 # Break execution
                 break
-            
+
             # Initialize connection (sender sends SYN flag on 1000)
             if flags == 8:
                 # See -> data_handlers.initializeClientConnection()
                 data_handlers.initializeClientConnection(server, client, data, reliability)
                 continue
-                    
-            # SR connection
-            if reliability == "SR":
-                # See data_handlers.handleSRData()
-                data_handlers.handleSRData(receive_buffer, seq, data, ack, client, server, f, expected_seq_num)
 
-                # Update seq value
-                expected_seq_num += 1
-                continue
-
-            # GBN connection 
-            if reliability == "GBN":
-                # See -> data_handlers.handleGBNData()
-                data_handlers.handleGBNData(client, server, ack, f, data)
-                # Update expected packet value
-                expected_seq_num += 1
+            # Skip ack if the skipack flag is provided
+            # Explanation: The trigger value wil skip every "trigger"th incomming sequence
+            if trigger is not None and seq % trigger == 0 and seq != 0 and i != seq:
+                i = seq
                 continue
 
             # Check if packet is not the expected packet
@@ -83,9 +66,18 @@ def Main():
                 utils.invalidPacket(seq, 'Received out of order')
                 # Continue execution
                 continue
-            
-            # See -> data_handlers.handleClientData()
-            data_handlers.handleClientData(client, server, ack, data, f)
+
+            # SR connection
+            if reliability == "SR":
+                # See data_handlers.handleSRData()
+                data_handlers.handleSRData(receive_buffer, seq, data, ack, client, server, f, expected_seq_num)
+            # GBN connection 
+            elif reliability == "GBN":
+                # See -> data_handlers.handleGBNData()
+                data_handlers.handleGBNData(client, server, ack, f, data)
+            else:
+                # See -> data_handlers.handleClientData()
+                data_handlers.handleClientData(client, server, ack, data, f)
             
             # Update expected packet value
             expected_seq_num += 1
