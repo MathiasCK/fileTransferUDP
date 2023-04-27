@@ -58,11 +58,7 @@ def handleConnections(server, trigger, reliability, file):
             if reliability == "SR":
                 # See data_handlers.handleSRData()
                 data_handlers.handleSRData(client, server, ack, data, f, receive_buffer, seq, expected_seq_num)
-            # GBN connection 
-            elif reliability == "GBN":
-                # See -> data_handlers.handleGBNData()
-                data_handlers.handleGBNData(client, server, ack, data, f)
-            # SAW or regular connection
+            # SAW, GBN or regular connection
             else:
                 # See -> data_handlers.handleClientData()
                 data_handlers.handleClientData(client, server, ack, data, f)
