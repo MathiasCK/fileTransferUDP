@@ -1,11 +1,15 @@
 import socket
 from utils import utils, responses
 from collections import deque
+import time
 
 def stop_and_wait(client_sd, server, file, trigger):
-
     seq_num = 0
     ex_ack = 0
+    timeout = 0.5
+
+    rtt_values = []
+    start_time = time.time()
 
     while True:
         # Read next chunk from file
@@ -14,7 +18,7 @@ def stop_and_wait(client_sd, server, file, trigger):
         utils.sendData(client_sd, server, seq_num, ex_ack, 4, 0, chunk, trigger)
 
         try:
-            client_sd.settimeout(0.5)
+            client_sd.settimeout(timeout)
             ack, _ = client_sd.recvfrom(1472)
 
             ack_num = int(ack.decode())
@@ -23,6 +27,10 @@ def stop_and_wait(client_sd, server, file, trigger):
                 print(f"Packet {seq_num} sent")
                 seq_num += 1
                 ex_ack += 1
+
+                rtt = time.time() - start_time
+                rtt_values.append(rtt)
+                timeout = sum(rtt_values) / len(rtt_values) * 4
             elif ex_ack == seq_num:
                 print(f"Packet {ex_ack} - Duplicate ack received")
                 continue
