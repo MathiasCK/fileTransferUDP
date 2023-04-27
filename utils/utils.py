@@ -1,5 +1,6 @@
 from . import header
 import random
+import time
 
 # Checks if checksum received is valid
 # @payload -> data received
@@ -74,3 +75,31 @@ def sendData(client, server, seq, ack, flag, window, data, trigger = None):
     if packet_send_prob > 0.1:
         # See -> createAndSendPacket()
         createAndSendPacket(client, server, seq, ack, flag, window, data)
+
+# Calculate new timeout after packet is received
+# @start_time -> time since beginning of transfer
+# @rtt_values -> array containing previous rtt values
+# Returns new timeout value
+def calculateNewTimeout(start_time, rtt_values):
+    # Calculate last round trip time
+    rtt = time.time() - start_time
+    # Add last round trip time to array
+    rtt_values.append(rtt)
+    # New timeout value is calculated by the total values divided by the amount of values provided
+    return sum(rtt_values) / len(rtt_values) * 4
+
+# Calculate new timeout after packet is received for SR & GBN
+# @rtt_values -> array containing previous rtt values
+# Returns new timeout value
+def calculateNewTimeoutAndPop(rtt_values):
+    # Calculate time of received ack
+    end_time = time.time()
+    # Round trip time is calculating by taking the end time from the latest ack
+    rtt = end_time - rtt_values.pop(0)
+    # Remove latest rtt if the length is greater than 10
+    if len(rtt_values) > 10:
+        rtt_values.pop(0)
+    # Append the newest rtt
+    rtt_values.append(rtt)
+    # New timeout value is calculated by the total values divided by the amount of values provided
+    return sum(rtt_values) / len(rtt_values) * 4

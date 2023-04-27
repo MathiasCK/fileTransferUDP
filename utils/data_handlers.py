@@ -28,9 +28,7 @@ def stop_and_wait(client_sd, server, file, trigger):
                 seq_num += 1
                 ex_ack += 1
 
-                rtt = time.time() - start_time
-                rtt_values.append(rtt)
-                timeout = sum(rtt_values) / len(rtt_values) * 4
+                timeout = utils.calculateNewTimeout(start_time, rtt_values)
             elif ex_ack == seq_num:
                 print(f"Packet {ex_ack} - Duplicate ack received")
                 continue
@@ -76,12 +74,7 @@ def GBN(client_sd, server, file, trigger):
             ack_seq_num = int(ack.decode())
 
             if ack_seq_num in unacknowledged_packets:
-                end_time = time.time()
-                rtt = end_time - rtt_values.pop(0)
-                if len(rtt_values) > 10:
-                    rtt_values.pop(0)
-                rtt_values.append(rtt)
-                timeout = sum(rtt_values) / len(rtt_values) * 4
+                timeout = utils.calculateNewTimeoutAndPop(rtt_values)
 
                 base = ack_seq_num + 1
                 del unacknowledged_packets[ack_seq_num]
@@ -130,12 +123,7 @@ def SR(client_sd, server, file, trigger):
             ack_seq_num = int(ack.decode())
 
             if ack_seq_num in unacknowledged_packets:
-                end_time = time.time()
-                rtt = end_time - rtt_values.pop(0)
-                if len(rtt_values) > 10:
-                    rtt_values.pop(0)
-                rtt_values.append(rtt)
-                timeout = sum(rtt_values) / len(rtt_values) * 4
+                timeout = utils.calculateNewTimeoutAndPop(rtt_values)
 
                 del unacknowledged_packets[ack_seq_num]
                 base = min(unacknowledged_packets) if unacknowledged_packets else ack_seq_num + 1
@@ -176,9 +164,7 @@ def handleData(client_sd, server, file, trigger):
                     seq_num += 1
                     ex_ack += 1
 
-                    rtt = time.time() - start_time
-                    rtt_values.append(rtt)
-                    timeout = sum(rtt_values) / len(rtt_values) * 4
+                    timeout = utils.calculateNewTimeout(start_time, rtt_values)
 
             except socket.timeout:
                 print(f"Packet {seq_num} timed out - Resending packet")
