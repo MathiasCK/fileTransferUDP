@@ -7,7 +7,7 @@
     "start:server": "python3 application.py -s",
     "start:server_SAW": "python3 application.py -s -r SAW",
     "start:server_GBN": "python3 application.py -s -r GBN",
-    "start:server_SR": "python3 application.py -s -r SN",
+    "start:server_SR": "python3 application.py -s -r SR",
     "start:client": "python3 application.py -c -f Photo.jpg",
     "start:client_SAW": "python3 application.py -c -f Photo.jpg -r SAW",
     "start:client_GBN": "python3 application.py -c -f Photo.jpg -r GBN",
