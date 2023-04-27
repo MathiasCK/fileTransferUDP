@@ -43,7 +43,7 @@ def stop_and_wait(client_sd, server, file, trigger):
         
     client_sd.close()
 
-def GBN(client_sd, server, file):
+def GBN(client_sd, server, file, trigger):
     window_size = 5
     base = 0
     next_seq_num = 0
@@ -55,8 +55,14 @@ def GBN(client_sd, server, file):
 
             if not payload:
                 break
+            
+            packet_send_prob = 1
 
-            utils.createAndSendPacket(client_sd, server, next_seq_num, next_seq_num, 4, 5, payload)
+            if trigger is not None:
+                packet_send_prob = random.random()
+            
+            if packet_send_prob > 0.1:
+                utils.createAndSendPacket(client_sd, server, next_seq_num, next_seq_num, 4, 5, payload)
 
             print(f"Packet {next_seq_num} sent")
             
@@ -167,7 +173,7 @@ def handleReliability(client_sd, server, file_path, trigger, reliability):
         if reliability == 'SAW':
             return stop_and_wait(client_sd, server, file, trigger)
         if reliability == 'GBN':
-            return GBN(client_sd, server, file)
+            return GBN(client_sd, server, file, trigger)
         if reliability == 'SR':
             return SR(client_sd, server, file)
         return sendData(client_sd, server, file, trigger)
