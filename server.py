@@ -21,10 +21,18 @@ def Main():
     expected_seq_num = 0
     # Received buffer
     receive_buffer = {}
-
+    # Default receiving image file
     img = 'safi-recv.jpg'
+    # Handle -f flag
     if file is not None:
         img = file
+    # Handle -t flag
+    if trigger == "skipack":
+        # Global incomming seq counter
+        i = 0
+        # See utils.handleSkipAck()
+        trigger = utils.handleSkipAck()
+        print(f"Trigger will skip ack for every {trigger}th packet")
 
     # Write incomming image to safi-recv.jpg
     with open(img, 'wb') as f:
@@ -36,6 +44,12 @@ def Main():
             # Sequence number, ack, flags & window size
             # See -> header.parse_header()
             seq, ack, flags, win = header.parse_header (headers)
+
+            # Skip ack if the skipack flag is provided
+            # Explanation: The trigger value wil skip every "trigger"th incomming sequence
+            if trigger is not None and seq % trigger == 0 and seq != 0 and i != seq:
+                i = seq
+                continue
             # Parse header flags
             synFlag, ackFlag, finFlag = header.parse_flags(flags)
 
@@ -77,6 +91,8 @@ def Main():
                     del receive_buffer[expected_seq_num]
                     # Update seq value
                     expected_seq_num += 1
+                
+                continue
 
             # GBN connection 
             if reliability == "GBN":

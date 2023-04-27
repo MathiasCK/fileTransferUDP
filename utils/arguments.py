@@ -84,7 +84,7 @@ def checkServerOpts():
       if opt in ('-t', '--trigger'):
           # Validate ip trigger
           validators.isValidTrigger(arg)
-          trigger = arg
+          trigger = arg.lower()
       if opt in ('-r', '--reliability'):
           # Validate reliability
           validators.isValidReliability(arg)

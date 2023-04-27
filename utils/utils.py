@@ -1,4 +1,5 @@
 from . import header
+import random
 
 def validateCheckSum(payload, checksum):
     return checksum == sum(payload) % 256
@@ -18,3 +19,6 @@ def createAndSendPacket(sender, receiver, ex_packetNum, seq_num, flag, window, d
 
 def checkReliabilityMatch(rel1, rel2):
     return rel1 == rel2
+
+def handleSkipAck():
+    return random.randint(10, 20)
