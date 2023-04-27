@@ -1,6 +1,11 @@
 import socket
 from utils import utils, arguments, header, data_handlers
 
+# Handle incomming client connections
+# @server -> server socket connection
+# @trigger -> value provided in -t flag (default None)
+# @reliability -> value provided in -r flag (default None)
+# @file -> value provided in -f flag (default None)
 def handleConnections(server, trigger, reliability, file):
     # Keep track of expected sequence number
     expected_seq_num = 0
