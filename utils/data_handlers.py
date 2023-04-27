@@ -3,7 +3,7 @@ from utils import utils, responses
 from collections import deque
 import random
 
-def stop_and_wait(client_sd, server, file):
+def stop_and_wait(client_sd, server, file, trigger):
 
     seq_num = 0
     ex_ack = 0
@@ -12,7 +12,13 @@ def stop_and_wait(client_sd, server, file):
         # Read next chunk from file
         chunk = file.read(1460)
 
-        utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
+        packet_send_prob = 1
+
+        if trigger is not None:
+            packet_send_prob = random.random()
+        
+        if packet_send_prob > 0.1:
+            utils.createAndSendPacket(client_sd, server, seq_num, ex_ack, 4, 0, chunk)
 
         try:
             client_sd.settimeout(0.5)
@@ -159,7 +165,7 @@ def sendData(client_sd, server, file, trigger):
 def handleReliability(client_sd, server, file_path, trigger, reliability):
     with open(file_path, 'rb') as file:
         if reliability == 'SAW':
-            return stop_and_wait(client_sd, server, file)
+            return stop_and_wait(client_sd, server, file, trigger)
         if reliability == 'GBN':
             return GBN(client_sd, server, file)
         if reliability == 'SR':
