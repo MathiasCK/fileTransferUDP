@@ -1,5 +1,5 @@
 import socket
-from utils import utils, arguments, header, responses
+from utils import utils, arguments, header, data_handlers
 
 # Code execution starts here
 def Main():
@@ -60,20 +60,8 @@ def Main():
             
             # Initialize connection (sender sends SYN flag on 1000)
             if synFlag == 8:
-                # Decode data
-                data = data[12:].decode()
-                # See -> utils.checkReliabilityMatch()
-                if not utils.checkReliabilityMatch(str(data), str(reliability)):
-                    # Format message
-                    msg = f'Server reliability "{reliability}" does not match client reliability "{data}"'
-                    # See utils.createAndSendPacket()
-                    utils.createAndSendPacket(server, client, 0, 0, 1, 0, msg.encode())
-                    # See -> responses.syntaxError()
-                    responses.syntaxError(msg)
-                    break
-                
-                # See utils.createAndSendPacket()
-                utils.createAndSendPacket(server, client, 0, 0, 12, 0, b'')
+                # See -> data_handlers.initializeClientConnection()
+                data_handlers.initializeClientConnection(server, client, data, reliability)
                 continue
                     
             # SR connection

@@ -187,3 +187,19 @@ def connectClient(client_sd, ip, port, reliability):
         print("-------------------------------------------------------------")
     except Exception as err:
         responses.err(err)
+
+def initializeClientConnection(server, client, data, reliability):
+    # Decode data
+    data = data[12:].decode()
+    # See -> utils.checkReliabilityMatch()
+    if not utils.checkReliabilityMatch(str(data), str(reliability)):
+        # Format message
+        msg = f'Server reliability "{reliability}" does not match client reliability "{data}"'
+        # See utils.createAndSendPacket()
+        utils.createAndSendPacket(server, client, 0, 0, 1, 0, msg.encode())
+        # See -> responses.syntaxError()
+        responses.syntaxError(msg)
+    
+    # Send packet with SYN/ACK flag to client
+    # See utils.createAndSendPacket()
+    utils.createAndSendPacket(server, client, 0, 0, 12, 0, b'')
