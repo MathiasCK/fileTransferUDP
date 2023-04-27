@@ -190,36 +190,69 @@ def handleData(client_sd, server, file, trigger):
         
     client_sd.close()
 
+# Handle -r flag (if provided) from client
+# @client_sd -> client socket
+# @server -> server socket
+# @file_path -> value provided with -f flag (if provided) - Default ./Photo.jpg
+# @trigger -> value provided with -t flag (if provided) - Default None
+# @reliability -> value provided with -r flag (if provided) - Default None
 def handleReliability(client_sd, server, file_path, trigger, reliability):
+    # Open file
     with open(file_path, 'rb') as file:
+        # Check reliability match
         if reliability == 'SAW':
+            # See -> stop_and_wait()
             return stop_and_wait(client_sd, server, file, trigger)
         if reliability == 'GBN':
+            # See -> GBN()
             return GBN(client_sd, server, file, trigger)
         if reliability == 'SR':
+            # See -> SR()
             return SR(client_sd, server, file, trigger)
+        # See -> handleData()
         return handleData(client_sd, server, file, trigger)
 
-def handleSRData(client, server, ack, data, f, receive_buffer, seq, expected_seq_num):
+# Handle incomming client data if -r SR flag is provided
+# @client_sd -> client socket
+# @server -> server socket
+# @ack -> ack received from client
+# @data -> data received from client
+# @file -> output file from server
+# @receive_buffer -> object of buffer data received from client
+# @seq -> sequence number received from client
+# @expected_seq_num -> expected sequence number of server
+def handleSRData(client, server, ack, data, file, receive_buffer, seq, expected_seq_num):
     # Add received data to buffer
     receive_buffer[seq] = data
     print(f"Received packet {ack}")
-    # Send ack to client
+    # Encode ack and send to client
     server.sendto(str(ack).encode(), client)
 
+    # As long as the expected sequence number is in the receive buffer - (as long as the data received has not yet been acked)
     while expected_seq_num in receive_buffer:
         # Write received data to image file
-        f.write(receive_buffer[expected_seq_num])
-        # Delete buffer
+        file.write(receive_buffer[expected_seq_num])
+        # Delete buffer (send ack)
         del receive_buffer[expected_seq_num]
 
-def handleClientData(client, server, ack, data, f):
+# Handle incomming client data
+# @client -> client socket
+# @server -> server socket
+# @ack -> ack received from client
+# @data -> data received from client
+# @file -> output file from server
+def handleClientData(client, server, ack, data, file):
     # Write data to image
-    f.write(data)
+    file.write(data)
     print(f"Received packet {ack}")
-    # Send ack to client
+    # Encode ack and send to client
     server.sendto(str(ack).encode(), client)
 
+# Validate incomming client data upon receiving connection request
+# @server -> server socket
+# @client -> client socket
+# @data -> data received from client
+# @reliability -> client reliability
 def initializeClientConnection(server, client, data, reliability):
     # Decode data
     data = data[12:].decode()
@@ -232,6 +265,6 @@ def initializeClientConnection(server, client, data, reliability):
         # See -> responses.syntaxError()
         responses.syntaxError(msg)
     
-    # Send packet with SYN/ACK flag to client
+    # Send empty packet with SYN/ACK flag (1100 = 12) to client indicating connection was successful
     # See utils.createAndSendPacket()
     utils.createAndSendPacket(server, client, 0, 0, 12, 0, b'')
