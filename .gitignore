@@ -1,2 +1,6 @@
 node_modules
 safi-recv.jpg
+__pycache__
+/utils/__pycache__
+.DS_store
+simple-topo.py
