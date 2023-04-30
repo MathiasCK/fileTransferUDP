@@ -335,7 +335,7 @@ def handleClientData(client, server, ack, data, file):
 # @reliability -> client reliability
 def initializeClientConnection(server, client, data, reliability):
     # Decode data
-    data = data[12:].decode()
+    data = data.decode()
     # See -> utils.checkReliabilityMatch()
     if not utils.checkReliabilityMatch(str(data), str(reliability)):
         # Format message

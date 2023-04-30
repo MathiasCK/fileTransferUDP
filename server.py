@@ -29,8 +29,10 @@ def handleConnections(server, trigger, reliability, file):
         while True:
             # Receive data from client
             data, client = server.recvfrom(1472)
-            # Decode data headers (first 12 bytes)
+            # Retrieve data headers (first 12 bytes)
             headers = data[:12]
+            # Retrieve data
+            data = data[12:]
             # Sequence number, ack, flags & window size
             # See -> header.parse_header()
             seq, ack, flags, win = header.parse_header (headers)
