@@ -112,8 +112,9 @@ def calculateThroughput(file_size, start_time):
     end_time = time.time()
     # Calculate total time
     total_time = end_time - start_time
+    total_time = "%.2f" % round(total_time, 2)
     # Calculate througput
-    throughput = file_size / total_time
+    throughput = file_size / float(total_time)
 
     print(f"File size: {file_size} bytes")
     print(f"Total time: {total_time} seconds")
