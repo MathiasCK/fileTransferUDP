@@ -85,6 +85,8 @@ def GBN(client_sd, server, file, trigger):
     start_time = time.time()
     # Append start time to rtt_values
     rtt_values.append(start_time)
+    # Total size of file
+    file_size = os.fstat(file.fileno()).st_size
 
     while True:
         # As long as the sequence number is less than starting window size + the total window size (window size is big enough)
@@ -129,6 +131,9 @@ def GBN(client_sd, server, file, trigger):
                 print(f"Packet {seq_num} timed out (GBN) - resending packet")
                 # See utils.createAndSendPacket()
                 utils.createAndSendPacket(client_sd, server, seq_num, seq_num, 4, 5, payload)
+    
+    # See -> utils.calculateThroughput()
+    utils.calculateThroughput(file_size, start_time)
     # See -> utils.sendFINPacket()
     utils.sendFINPacket(client_sd, server, sequence_number, sequence_number)
     # Close client connection
