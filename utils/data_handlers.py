@@ -163,6 +163,8 @@ def SR(client_sd, server, file, trigger):
     start_time = time.time()
     # Append start time to rtt_values
     rtt_values.append(start_time)
+    # Total size of file
+    file_size = os.fstat(file.fileno()).st_size
 
     while True:
         # As long as the buffer is less than the window size
@@ -217,6 +219,9 @@ def SR(client_sd, server, file, trigger):
             for seq_num, payload in unacked_packets.items():
                 # See -> utils.createAndSendPacket()
                 utils.createAndSendPacket(client_sd, server, seq_num, seq_num, 4, 5, payload)
+
+    # See -> utils.calculateThroughput()
+    utils.calculateThroughput(file_size, start_time)
     # See -> utils.sendFINPacket()
     utils.sendFINPacket(client_sd, server, sequence_number, sequence_number)
     # Close client connection
