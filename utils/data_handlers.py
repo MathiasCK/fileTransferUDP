@@ -2,6 +2,7 @@ import socket
 from utils import utils, responses
 from collections import deque
 import time
+import os
 
 # Handle client data with SAW reliability
 # @client_sd -> client socket
@@ -19,6 +20,8 @@ def stop_and_wait(client_sd, server, file, trigger):
     rtt_values = []
     # Time since start of data transfer
     start_time = time.time()
+    # Total size of file
+    file_size = os.fstat(file.fileno()).st_size
 
     while True:
         # Read next chunk from file
@@ -52,6 +55,8 @@ def stop_and_wait(client_sd, server, file, trigger):
             continue
         # If no chunk -> packet transfer is finished
         if not chunk:
+            # See -> utils.calculateThroughput()
+            utils.calculateThroughput(file_size, start_time)
             # See -> utils.sendFINPacket()
             utils.sendFINPacket(client_sd, server, sequence_number, expected_ack)
             break

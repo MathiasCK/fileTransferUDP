@@ -103,3 +103,18 @@ def calculateNewTimeoutAndPop(rtt_values):
     rtt_values.append(rtt)
     # New timeout value is calculated by the total values divided by the amount of values provided
     return sum(rtt_values) / len(rtt_values) * 4
+
+# Calculate data throughput
+# @file_size -> total size of file
+# @start_time -> time since data transfer started
+def calculateThroughput(file_size, start_time):
+    # Stop timer
+    end_time = time.time()
+    # Calculate total time
+    total_time = end_time - start_time
+    # Calculate througput
+    throughput = file_size / total_time
+
+    print(f"File size: {file_size} bytes")
+    print(f"Total time: {total_time} seconds")
+    print(f"Throughput: {int(throughput)} bytes/second")
